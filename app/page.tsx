@@ -34,6 +34,7 @@ import {
   setPersistentSessionUser,
   autoPromoteWaitlist,
   UserEnrollment,
+  UserAccount,
   Announcement,
 } from "../lib/enrollmentStore";
 
@@ -155,19 +156,18 @@ export default function Home() {
     }
   };
 
-  // Manual Login with Real Student Details
-  const handleManualLogin = (name: string, email: string) => {
-    const studentUid = "std_" + email.toLowerCase().replace(/[^a-z0-9]/g, "_");
+  // Account Authenticated with Real Student Email and Password
+  const handleAccountAuthenticated = (account: UserAccount) => {
     const loggedUser = {
-      uid: studentUid,
-      displayName: name,
-      email: email.toLowerCase(),
+      uid: account.uid,
+      displayName: account.name,
+      email: account.email,
     };
 
     setUser(loggedUser);
     setPersistentSessionUser(loggedUser);
-    if (enrollments[studentUid]) {
-      setUserEnrollment(enrollments[studentUid]);
+    if (enrollments[account.uid]) {
+      setUserEnrollment(enrollments[account.uid]);
     }
   };
 
@@ -355,7 +355,7 @@ export default function Home() {
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         onGoogleLogin={handleGoogleLogin}
-        onManualLogin={handleManualLogin}
+        onAccountAuthenticated={handleAccountAuthenticated}
       />
 
       {/* Admin Panel Modal */}

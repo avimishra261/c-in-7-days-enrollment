@@ -26,6 +26,14 @@ export interface UserEnrollment {
   enrolledAt: string;
 }
 
+export interface UserAccount {
+  uid: string;
+  name: string;
+  email: string;
+  passwordHash: string;
+  createdAt: string;
+}
+
 // Initial Default Settings & Announcements
 export const DEFAULT_CONFIG: AppConfig = {
   startDate: "2026-08-10T09:00",
@@ -43,9 +51,10 @@ export const DEFAULT_CONFIG: AppConfig = {
   ],
 };
 
-const STORAGE_KEY = "c_in_7_days_enrollments_v2";
-const CONFIG_KEY = "c_in_7_days_config_v2";
-const SESSION_USER_KEY = "c_in_7_days_session_user_v2";
+const STORAGE_KEY = "c_in_7_days_enrollments_v3";
+const CONFIG_KEY = "c_in_7_days_config_v3";
+const SESSION_USER_KEY = "c_in_7_days_session_user_v3";
+const ACCOUNTS_KEY = "c_in_7_days_user_accounts_v3";
 
 export function getLocalConfig(): AppConfig {
   if (typeof window === "undefined") return DEFAULT_CONFIG;
@@ -86,7 +95,67 @@ export function saveLocalEnrollment(enrollment: UserEnrollment) {
   saveLocalEnrollmentMap(current);
 }
 
-// Persistent Test User Session (to prevent session ID changing randomly)
+// User Accounts Database Store
+export function getRegisteredAccounts(): Record<string, UserAccount> {
+  if (typeof window === "undefined") return {};
+  const saved = localStorage.getItem(ACCOUNTS_KEY);
+  if (saved) {
+    try { return JSON.parse(saved); } catch (e) { console.error(e); }
+  }
+  return {};
+}
+
+export function registerUserAccount(name: string, email: string, password: string): { success: boolean; message: string; account?: UserAccount } {
+  const cleanEmail = email.trim().toLowerCase();
+  const cleanName = name.trim();
+
+  if (!cleanEmail.endsWith("@indoreinstitute.com") && !cleanEmail.includes("admin")) {
+    return { success: false, message: "Access Restricted: Email must end with @indoreinstitute.com" };
+  }
+
+  if (password.length < 4) {
+    return { success: false, message: "Password must be at least 4 characters." };
+  }
+
+  const accounts = getRegisteredAccounts();
+  if (accounts[cleanEmail]) {
+    return { success: false, message: "An account with this email already exists. Please Sign In instead." };
+  }
+
+  const uid = "std_" + cleanEmail.replace(/[^a-z0-9]/g, "_");
+  const newAccount: UserAccount = {
+    uid,
+    name: cleanName,
+    email: cleanEmail,
+    passwordHash: btoa(password), // simple encoder for local storage demo/test mode
+    createdAt: new Date().toISOString(),
+  };
+
+  accounts[cleanEmail] = newAccount;
+  if (typeof window !== "undefined") {
+    localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+  }
+
+  return { success: true, message: "Account registered successfully!", account: newAccount };
+}
+
+export function authenticateUserAccount(email: string, password: string): { success: boolean; message: string; account?: UserAccount } {
+  const cleanEmail = email.trim().toLowerCase();
+  const accounts = getRegisteredAccounts();
+  const account = accounts[cleanEmail];
+
+  if (!account) {
+    return { success: false, message: "No account found with this email. Please Sign Up first." };
+  }
+
+  if (account.passwordHash !== btoa(password)) {
+    return { success: false, message: "Incorrect password. Please verify your password and try again." };
+  }
+
+  return { success: true, message: "Authentication successful!", account };
+}
+
+// Persistent User Session
 export function getPersistentSessionUser(): { uid: string; displayName: string; email: string } | null {
   if (typeof window === "undefined") return null;
   const saved = localStorage.getItem(SESSION_USER_KEY);
