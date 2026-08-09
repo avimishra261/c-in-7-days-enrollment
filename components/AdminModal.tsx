@@ -49,7 +49,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passcode === "IIST#AshishSir@C2026" || passcode === "AshishSir#MasterKey2026") {
+    if (passcode === "AshishfromEngenius" || passcode === "ashishfromengenius") {
       setAuthenticated(true);
       setError("");
     } else {
