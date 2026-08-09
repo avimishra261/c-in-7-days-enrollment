@@ -1,0 +1,16 @@
+Hi, mujhe ek system banana hai , system isliyeh bol raha hu ki mujhe abhi smjh nhi aa raha ki kya banaun website banaun ya google form banayn ya kuchh aur , system ki requirements neeche likh deta hu
+
+Jo system hoga woh enrollement ke liyeh rahega, college me " C in 7 days " class hone wali hai aur mere sir "Mr. Ashish Singh" yeh class conduct karwaenge , toh sir ne mujhse yeh system banane ke liyeh request kiya hai. Requirements kuchh is tarah se hai ki jo class hogi C in 7 days wali woh 2 batches me run hogi, dono batches ka timing abhi fix nhi hua hai but maximum limit uski 160 students per batch hone wali hai , toh system aesa banawana hai ki 2 batch bane usme max limit 160 student per batch ki ho aur student choose kar ske ki use kis batch me jaana hai but student at a time ek hi batch me enroll kar skta hai, uske baad woh nhi kar skta ( iska koi security feature bhi lagana padega jisse ek hi student 2 batch me enroll karke jagah na bhar de ) enrollment first come first serve ke basis pe hogi and dono batch ke liyeh 1 waiting list bhi hogi aur woh bhi automated hogi first come first serve ke basis pe taaki agar student ko batch 1 me hi entry leni hai aur batch 2 bhale hi khali ho student batch 1 waiting list me apne aap ko enroll kar ske aur yeh poora process transparent hona chahiyeh
+
+Security features that must be implemented:-
+1) Student can enroll only in one possible section among the four , namely, batch 1, batch 2, waiting list 1, waiting list 2. And these waiting lists will only open if the batches get filled
+2) We have to think and construct a way to stop students from enrolling multiple times , that too with least amount of load
+
+Additional features:-
+1) The process should be transparent to the students
+2) The UI should be clean and modern without information overloading and bloatware
+3) Proper database should be maintained and we can alter things like, starting day to register, last day to register, extend the last date, and any other thing if we want
+4) First make a test system with max limit of 4 per batch , then we can at last increase the max limit to 160 per batch
+
+
+The programme is for our college students "Students of Indore Institute of Science and Technology" so suggest ways to make the event\programme widely recognised and tell ways to advertise it. It is a free program.s
