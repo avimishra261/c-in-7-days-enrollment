@@ -44,8 +44,16 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
   const batch2Percent = Math.min(100, Math.round((batch2Count / maxLimitPerBatch) * 100));
 
   const handleEnrollClick = async (section: "batch1" | "batch2" | "waitlist1" | "waitlist2") => {
+    if (!registrationOpen) {
+      setFeedback({
+        type: "error",
+        message: "Registration Portal is currently paused by Administration.",
+      });
+      return;
+    }
+
     if (!user) {
-      onLogin();
+      onLogin(); // Opens Auth Modal
       return;
     }
 
@@ -176,11 +184,17 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
             {!batch1Full ? (
               <button
                 onClick={() => handleEnrollClick("batch1")}
-                disabled={!registrationOpen || !!userEnrollment || loadingSection === "batch1"}
+                disabled={loadingSection === "batch1"}
                 className="btn-primary"
                 style={{ width: "100%" }}
               >
-                {loadingSection === "batch1" ? "Processing Seat..." : userEnrollment ? "Already Registered Elsewhere" : "Enroll in Batch 1"}
+                {loadingSection === "batch1" 
+                  ? "Processing Seat..." 
+                  : userEnrollment 
+                    ? "Already Registered Elsewhere" 
+                    : !user 
+                      ? "Sign In to Enroll in Batch 1" 
+                      : "Enroll in Batch 1"}
               </button>
             ) : (
               <div style={{ background: "rgba(245, 158, 11, 0.08)", border: "1px dashed rgba(245, 158, 11, 0.3)", borderRadius: "0.85rem", padding: "1rem", textAlign: "center" }}>
@@ -192,11 +206,15 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
                 </p>
                 <button
                   onClick={() => handleEnrollClick("waitlist1")}
-                  disabled={!registrationOpen || !!userEnrollment || loadingSection === "waitlist1"}
+                  disabled={loadingSection === "waitlist1"}
                   className="btn-secondary"
                   style={{ width: "100%", color: "#fcd34d", borderColor: "rgba(245, 158, 11, 0.4)" }}
                 >
-                  {loadingSection === "waitlist1" ? "Joining Waitlist..." : "Join Waitlist 1"}
+                  {loadingSection === "waitlist1" 
+                    ? "Joining Waitlist..." 
+                    : !user 
+                      ? "Sign In to Join Waitlist 1" 
+                      : "Join Waitlist 1"}
                 </button>
               </div>
             )}
@@ -248,11 +266,17 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
             {!batch2Full ? (
               <button
                 onClick={() => handleEnrollClick("batch2")}
-                disabled={!registrationOpen || !!userEnrollment || loadingSection === "batch2"}
+                disabled={loadingSection === "batch2"}
                 className="btn-primary"
                 style={{ width: "100%", background: "linear-gradient(135deg, #0284c7 0%, #2563eb 100%)" }}
               >
-                {loadingSection === "batch2" ? "Processing Seat..." : userEnrollment ? "Already Registered Elsewhere" : "Enroll in Batch 2"}
+                {loadingSection === "batch2" 
+                  ? "Processing Seat..." 
+                  : userEnrollment 
+                    ? "Already Registered Elsewhere" 
+                    : !user 
+                      ? "Sign In to Enroll in Batch 2" 
+                      : "Enroll in Batch 2"}
               </button>
             ) : (
               <div style={{ background: "rgba(245, 158, 11, 0.08)", border: "1px dashed rgba(245, 158, 11, 0.3)", borderRadius: "0.85rem", padding: "1rem", textAlign: "center" }}>
@@ -264,11 +288,15 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
                 </p>
                 <button
                   onClick={() => handleEnrollClick("waitlist2")}
-                  disabled={!registrationOpen || !!userEnrollment || loadingSection === "waitlist2"}
+                  disabled={loadingSection === "waitlist2"}
                   className="btn-secondary"
                   style={{ width: "100%", color: "#fcd34d", borderColor: "rgba(245, 158, 11, 0.4)" }}
                 >
-                  {loadingSection === "waitlist2" ? "Joining Waitlist..." : "Join Waitlist 2"}
+                  {loadingSection === "waitlist2" 
+                    ? "Joining Waitlist..." 
+                    : !user 
+                      ? "Sign In to Join Waitlist 2" 
+                      : "Join Waitlist 2"}
                 </button>
               </div>
             )}

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Navbar } from "../components/Navbar";
 import { Hero } from "../components/Hero";
 import { BatchCards } from "../components/BatchCards";
+import { AuthModal } from "../components/AuthModal";
 import { AdminModal } from "../components/AdminModal";
 import { Footer } from "../components/Footer";
 import {
@@ -38,6 +39,7 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   // Seat Counters State
   const [batch1Count, setBatch1Count] = useState<number>(0);
@@ -100,8 +102,13 @@ export default function Home() {
     }
   }, [enrollments]);
 
+  // Open Auth Modal
+  const handleOpenAuth = () => {
+    setIsAuthOpen(true);
+  };
+
   // Handle Google Sign-In
-  const handleLogin = async () => {
+  const handleGoogleLogin = async () => {
     try {
       const res = await signInWithPopup(auth, googleProvider);
       const email = res.user.email?.toLowerCase() || "";
@@ -115,19 +122,23 @@ export default function Home() {
       
       setUser(res.user);
     } catch (err: any) {
-      console.warn("Fallback to simulated demo user login.", err);
-      // Demo User login fallback using official college domain
-      const demoId = "demo_student_" + Math.floor(Math.random() * 1000);
-      const demoUser: any = {
-        uid: demoId,
-        displayName: "IIST Student (" + demoId.slice(-3) + ")",
-        email: `student_${demoId.slice(-3)}@indoreinstitute.com`,
-        photoURL: null,
-      };
-      setUser(demoUser);
-      if (enrollments[demoId]) {
-        setUserEnrollment(enrollments[demoId]);
-      }
+      console.warn("Google login popup closed or keys not set. Switching to demo login.", err);
+      handleDemoLogin();
+    }
+  };
+
+  // Instant Demo Login for local testing
+  const handleDemoLogin = () => {
+    const demoId = "demo_student_" + Math.floor(Math.random() * 1000);
+    const demoUser: any = {
+      uid: demoId,
+      displayName: "IIST Student (" + demoId.slice(-3) + ")",
+      email: `student_${demoId.slice(-3)}@indoreinstitute.com`,
+      photoURL: null,
+    };
+    setUser(demoUser);
+    if (enrollments[demoId]) {
+      setUserEnrollment(enrollments[demoId]);
     }
   };
 
@@ -147,7 +158,8 @@ export default function Home() {
     section: "batch1" | "batch2" | "waitlist1" | "waitlist2"
   ): Promise<{ success: boolean; message: string }> => {
     if (!user) {
-      return { success: false, message: "Please sign in to enroll." };
+      setIsAuthOpen(true);
+      return { success: false, message: "Please sign in with your college email (@indoreinstitute.com)." };
     }
 
     const email = user.email?.toLowerCase() || "";
@@ -169,7 +181,7 @@ export default function Home() {
     const newEnrollment: UserEnrollment = {
       userId: user.uid,
       userName: user.displayName || user.email || "Student",
-      userEmail: user.email || "student@iist.ac.in",
+      userEmail: user.email || "student@indoreinstitute.com",
       section,
       enrolledAt: new Date().toISOString(),
     };
@@ -247,7 +259,7 @@ export default function Home() {
       {/* Navigation */}
       <Navbar
         user={user}
-        onLogin={handleLogin}
+        onLogin={handleOpenAuth}
         onLogout={handleLogout}
         onOpenAdmin={() => setIsAdminOpen(true)}
         userEnrollmentSection={userEnrollment?.section}
@@ -259,7 +271,7 @@ export default function Home() {
 
         <BatchCards
           user={user}
-          onLogin={handleLogin}
+          onLogin={handleOpenAuth}
           maxLimitPerBatch={config.maxLimitPerBatch}
           batch1Count={batch1Count}
           batch2Count={batch2Count}
@@ -271,6 +283,14 @@ export default function Home() {
           registrationOpen={config.registrationOpen}
         />
       </div>
+
+      {/* Auth Modal Prompt */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        onGoogleLogin={handleGoogleLogin}
+        onDemoLogin={handleDemoLogin}
+      />
 
       {/* Admin Panel Modal */}
       <AdminModal
