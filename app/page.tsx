@@ -150,28 +150,25 @@ export default function Home() {
       setUser(loggedUser);
       setPersistentSessionUser(loggedUser);
     } catch (err: any) {
-      console.warn("Google login popup closed or keys not set. Using persistent test login.", err);
-      handleDemoLogin();
+      console.warn("Google login popup closed or keys not set. Opening Auth Modal for student entry.", err);
+      setIsAuthOpen(true);
     }
   };
 
-  // Stable Demo Login for local testing
-  const handleDemoLogin = () => {
-    const existing = getPersistentSessionUser();
-    if (existing) {
-      setUser(existing);
-      return;
-    }
-
-    const demoId = "student_roll_" + Math.floor(100 + Math.random() * 900);
-    const demoUser = {
-      uid: demoId,
-      displayName: "IIST Student (" + demoId.slice(-3) + ")",
-      email: `student_${demoId.slice(-3)}@indoreinstitute.com`,
+  // Manual Login with Real Student Details
+  const handleManualLogin = (name: string, email: string) => {
+    const studentUid = "std_" + email.toLowerCase().replace(/[^a-z0-9]/g, "_");
+    const loggedUser = {
+      uid: studentUid,
+      displayName: name,
+      email: email.toLowerCase(),
     };
 
-    setUser(demoUser);
-    setPersistentSessionUser(demoUser);
+    setUser(loggedUser);
+    setPersistentSessionUser(loggedUser);
+    if (enrollments[studentUid]) {
+      setUserEnrollment(enrollments[studentUid]);
+    }
   };
 
   // Handle Sign Out
@@ -358,7 +355,7 @@ export default function Home() {
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         onGoogleLogin={handleGoogleLogin}
-        onDemoLogin={handleDemoLogin}
+        onManualLogin={handleManualLogin}
       />
 
       {/* Admin Panel Modal */}
