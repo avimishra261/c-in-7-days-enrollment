@@ -18,6 +18,8 @@ export const AccessDeniedModal: React.FC<AccessDeniedModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
+  const isDomainAuthIssue = rejectedEmail.includes("Unauthorized Domain");
+
   return (
     <div style={{
       position: "fixed",
@@ -61,12 +63,20 @@ export const AccessDeniedModal: React.FC<AccessDeniedModalProps> = ({
         </div>
 
         <h2 style={{ fontSize: "1.4rem", color: "#ffffff", marginBottom: "0.5rem", fontWeight: 700 }}>
-          IIST College Email Required
+          {isDomainAuthIssue ? "Firebase Domain Authorization Needed" : "IIST College Email Required"}
         </h2>
 
         <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", lineHeight: 1.5, marginBottom: "1.25rem" }}>
-          You tried signing in with <strong style={{ color: "#fda4af" }}>{rejectedEmail || "a personal account"}</strong>. 
-          Registration is strictly locked to official college accounts ending with <strong style={{ color: "#ffffff" }}>@indoreinstitute.com</strong>.
+          {isDomainAuthIssue ? (
+            <>
+              Firebase Auth requires your Vercel deployment URL to be added under Authorized Domains.
+            </>
+          ) : (
+            <>
+              You tried signing in with <strong style={{ color: "#fda4af" }}>{rejectedEmail || "a personal account"}</strong>. 
+              Registration is strictly locked to official college accounts ending with <strong style={{ color: "#ffffff" }}>@indoreinstitute.com</strong>.
+            </>
+          )}
         </p>
 
         {/* Notice Box */}
@@ -81,9 +91,17 @@ export const AccessDeniedModal: React.FC<AccessDeniedModalProps> = ({
           color: "var(--text-muted)"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "#f43f5e", fontWeight: 600, marginBottom: "0.25rem" }}>
-            <AlertTriangle size={16} /> Security Lock Active
+            <AlertTriangle size={16} /> {isDomainAuthIssue ? "Action Required in Firebase Console" : "Security Lock Active"}
           </div>
-          Please select your official <strong>@indoreinstitute.com</strong> Google account in the popup prompt.
+          {isDomainAuthIssue ? (
+            <span>
+              Go to <strong>Firebase Console ➔ Authentication ➔ Settings ➔ Authorized domains</strong> and click <strong>Add domain</strong> to add: <code style={{ color: "#6ee7b7" }}>c-in-7-days-enrollment.vercel.app</code>.
+            </span>
+          ) : (
+            <span>
+              Please select your official <strong>@indoreinstitute.com</strong> Google account in the popup prompt.
+            </span>
+          )}
         </div>
 
         {/* Action Buttons */}
@@ -103,7 +121,7 @@ export const AccessDeniedModal: React.FC<AccessDeniedModalProps> = ({
               boxShadow: "0 4px 20px rgba(244, 63, 94, 0.4)"
             }}
           >
-            <RefreshCw size={18} /> Sign In with @indoreinstitute.com Google Account
+            <RefreshCw size={18} /> Retry Google Sign-In
           </button>
 
           <button
@@ -111,7 +129,7 @@ export const AccessDeniedModal: React.FC<AccessDeniedModalProps> = ({
             className="btn-secondary"
             style={{ width: "100%", justifyContent: "center", padding: "0.75rem", fontSize: "0.875rem" }}
           >
-            Cancel
+            Close
           </button>
         </div>
 

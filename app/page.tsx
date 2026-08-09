@@ -123,7 +123,11 @@ export default function Home() {
       setUser(loggedUser);
       setPersistentSessionUser(loggedUser);
     } catch (err: any) {
-      console.warn("Google login popup closed or cancelled.", err);
+      console.warn("Google login popup error:", err);
+      if (err.code === "auth/unauthorized-domain") {
+        setRejectedEmail("c-in-7-days-enrollment.vercel.app (Unauthorized Domain in Firebase)");
+        setIsAccessDeniedOpen(true);
+      }
     }
   };
 
