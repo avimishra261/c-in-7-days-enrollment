@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Navbar } from "../components/Navbar";
 import { Hero } from "../components/Hero";
 import { BatchCards } from "../components/BatchCards";
+import { EnrolledDashboard } from "../components/EnrolledDashboard";
 import { AuthModal } from "../components/AuthModal";
 import { AdminModal } from "../components/AdminModal";
 import { Footer } from "../components/Footer";
@@ -20,10 +21,7 @@ import {
 } from "firebase/auth";
 import {
   doc,
-  onSnapshot,
   setDoc,
-  getDoc,
-  runTransaction,
 } from "firebase/firestore";
 import {
   AppConfig,
@@ -31,12 +29,16 @@ import {
   getLocalConfig,
   saveLocalConfig,
   getLocalEnrollments,
-  saveLocalEnrollment,
+  saveLocalEnrollmentMap,
+  getPersistentSessionUser,
+  setPersistentSessionUser,
+  autoPromoteWaitlist,
   UserEnrollment,
+  Announcement,
 } from "../lib/enrollmentStore";
 
 export default function Home() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | any | null>(null);
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -51,7 +53,7 @@ export default function Home() {
   const [enrollments, setEnrollments] = useState<Record<string, UserEnrollment>>({});
   const [userEnrollment, setUserEnrollment] = useState<UserEnrollment | null>(null);
 
-  // Initialize Config & Local State
+  // Initialize Config & Local State & Persistent Session User
   useEffect(() => {
     const loadedConfig = getLocalConfig();
     setConfig(loadedConfig);
@@ -59,7 +61,24 @@ export default function Home() {
     const loadedEnrollments = getLocalEnrollments();
     setEnrollments(loadedEnrollments);
     recalculateCounts(loadedEnrollments);
+
+    const persistentUser = getPersistentSessionUser();
+    if (persistentUser) {
+      setUser(persistentUser);
+      if (loadedEnrollments[persistentUser.uid]) {
+        setUserEnrollment(loadedEnrollments[persistentUser.uid]);
+      }
+    }
   }, []);
+
+  // Update userEnrollment when user or enrollments change
+  useEffect(() => {
+    if (user && enrollments[user.uid]) {
+      setUserEnrollment(enrollments[user.uid]);
+    } else {
+      setUserEnrollment(null);
+    }
+  }, [user, enrollments]);
 
   // Recalculate Seat Counters from Enrollments
   const recalculateCounts = (data: Record<string, UserEnrollment>) => {
@@ -85,22 +104,23 @@ export default function Home() {
   useEffect(() => {
     try {
       const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-        setUser(currentUser);
         if (currentUser) {
-          if (enrollments[currentUser.uid]) {
-            setUserEnrollment(enrollments[currentUser.uid]);
-          } else {
-            setUserEnrollment(null);
+          const email = currentUser.email?.toLowerCase() || "";
+          if (email.endsWith("@indoreinstitute.com") || email.includes("admin")) {
+            setUser(currentUser);
+            setPersistentSessionUser({
+              uid: currentUser.uid,
+              displayName: currentUser.displayName || currentUser.email?.split("@")[0] || "Student",
+              email: currentUser.email || "",
+            });
           }
-        } else {
-          setUserEnrollment(null);
         }
       });
       return () => unsubscribe();
     } catch (e) {
-      console.warn("Firebase Auth listener not active in demo mode.", e);
+      console.warn("Firebase Auth listener inactive.", e);
     }
-  }, [enrollments]);
+  }, []);
 
   // Open Auth Modal
   const handleOpenAuth = () => {
@@ -120,26 +140,38 @@ export default function Home() {
         return;
       }
       
-      setUser(res.user);
+      const loggedUser = {
+        uid: res.user.uid,
+        displayName: res.user.displayName || res.user.email?.split("@")[0] || "Student",
+        email: res.user.email || "",
+        photoURL: res.user.photoURL,
+      };
+
+      setUser(loggedUser);
+      setPersistentSessionUser(loggedUser);
     } catch (err: any) {
-      console.warn("Google login popup closed or keys not set. Switching to demo login.", err);
+      console.warn("Google login popup closed or keys not set. Using persistent test login.", err);
       handleDemoLogin();
     }
   };
 
-  // Instant Demo Login for local testing
+  // Stable Demo Login for local testing
   const handleDemoLogin = () => {
-    const demoId = "demo_student_" + Math.floor(Math.random() * 1000);
-    const demoUser: any = {
+    const existing = getPersistentSessionUser();
+    if (existing) {
+      setUser(existing);
+      return;
+    }
+
+    const demoId = "student_roll_" + Math.floor(100 + Math.random() * 900);
+    const demoUser = {
       uid: demoId,
       displayName: "IIST Student (" + demoId.slice(-3) + ")",
       email: `student_${demoId.slice(-3)}@indoreinstitute.com`,
-      photoURL: null,
     };
+
     setUser(demoUser);
-    if (enrollments[demoId]) {
-      setUserEnrollment(enrollments[demoId]);
-    }
+    setPersistentSessionUser(demoUser);
   };
 
   // Handle Sign Out
@@ -151,6 +183,7 @@ export default function Home() {
     }
     setUser(null);
     setUserEnrollment(null);
+    setPersistentSessionUser(null);
   };
 
   // Handle Enrollment Action with Security Lock
@@ -190,7 +223,7 @@ export default function Home() {
     const updatedMap = { ...enrollments, [user.uid]: newEnrollment };
     setEnrollments(updatedMap);
     setUserEnrollment(newEnrollment);
-    saveLocalEnrollment(newEnrollment);
+    saveLocalEnrollmentMap(updatedMap);
     recalculateCounts(updatedMap);
 
     // Try Firestore Sync
@@ -214,25 +247,51 @@ export default function Home() {
     };
   };
 
-  // Cancel Enrollment
+  // Cancel Enrollment with Automated Waitlist Promotion
   const handleCancelEnrollment = async () => {
     if (!user || !userEnrollment) return;
 
     const updated = { ...enrollments };
     delete updated[user.uid];
 
-    setEnrollments(updated);
-    setUserEnrollment(null);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("c_in_7_days_enrollments_v1", JSON.stringify(updated));
-    }
-    recalculateCounts(updated);
+    // Auto promote first waitlist student to available seat!
+    const promotedMap = autoPromoteWaitlist(updated, config.maxLimitPerBatch);
+
+    setEnrollments(promotedMap);
+    setUserEnrollment(promotedMap[user.uid] || null);
+    saveLocalEnrollmentMap(promotedMap);
+    recalculateCounts(promotedMap);
   };
 
   // Save Admin Configuration
   const handleSaveConfig = (newConfig: AppConfig) => {
     setConfig(newConfig);
     saveLocalConfig(newConfig);
+
+    // Re-evaluate auto promotion if max limit changed
+    const promoted = autoPromoteWaitlist(enrollments, newConfig.maxLimitPerBatch);
+    setEnrollments(promoted);
+    saveLocalEnrollmentMap(promoted);
+    recalculateCounts(promoted);
+  };
+
+  // Add Faculty Announcement
+  const handleAddAnnouncement = (title: string, content: string) => {
+    const newAnn: Announcement = {
+      id: "ann_" + Date.now(),
+      title,
+      content,
+      date: new Date().toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }),
+      postedBy: "Mr. Ashish Singh",
+    };
+
+    const updatedConfig: AppConfig = {
+      ...config,
+      announcements: [newAnn, ...(config.announcements || [])],
+    };
+
+    setConfig(updatedConfig);
+    saveLocalConfig(updatedConfig);
   };
 
   // Clear all data (Admin reset)
@@ -243,9 +302,7 @@ export default function Home() {
     setBatch2Count(0);
     setWaitlist1Count(0);
     setWaitlist2Count(0);
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("c_in_7_days_enrollments_v1");
-    }
+    saveLocalEnrollmentMap({});
   };
 
   return (
@@ -269,19 +326,31 @@ export default function Home() {
       <div className="container">
         <Hero startDate={config.startDate} endDate={config.endDate} />
 
-        <BatchCards
-          user={user}
-          onLogin={handleOpenAuth}
-          maxLimitPerBatch={config.maxLimitPerBatch}
-          batch1Count={batch1Count}
-          batch2Count={batch2Count}
-          waitlist1Count={waitlist1Count}
-          waitlist2Count={waitlist2Count}
-          userEnrollment={userEnrollment}
-          onEnroll={handleEnroll}
-          onCancelEnrollment={handleCancelEnrollment}
-          registrationOpen={config.registrationOpen}
-        />
+        {/* If Enrolled: Display Dedicated Enrolled Student Dashboard */}
+        {userEnrollment ? (
+          <EnrolledDashboard
+            userEnrollment={userEnrollment}
+            allEnrollments={Object.values(enrollments)}
+            announcements={config.announcements || []}
+            onCancelEnrollment={handleCancelEnrollment}
+            maxLimitPerBatch={config.maxLimitPerBatch}
+          />
+        ) : (
+          /* Else: Display Batch Enrollment Cards */
+          <BatchCards
+            user={user}
+            onLogin={handleOpenAuth}
+            maxLimitPerBatch={config.maxLimitPerBatch}
+            batch1Count={batch1Count}
+            batch2Count={batch2Count}
+            waitlist1Count={waitlist1Count}
+            waitlist2Count={waitlist2Count}
+            userEnrollment={userEnrollment}
+            onEnroll={handleEnroll}
+            onCancelEnrollment={handleCancelEnrollment}
+            registrationOpen={config.registrationOpen}
+          />
+        )}
       </div>
 
       {/* Auth Modal Prompt */}
@@ -300,6 +369,7 @@ export default function Home() {
         onSaveConfig={handleSaveConfig}
         enrollmentsList={Object.values(enrollments)}
         onClearAllEnrollments={handleClearAllEnrollments}
+        onAddAnnouncement={handleAddAnnouncement}
       />
 
       {/* Footer */}

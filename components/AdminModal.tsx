@@ -11,6 +11,7 @@ interface AdminModalProps {
   onSaveConfig: (newConfig: AppConfig) => void;
   enrollmentsList: Array<{ userId: string; userName: string; userEmail: string; section: string; enrolledAt: string }>;
   onClearAllEnrollments: () => void;
+  onAddAnnouncement: (title: string, content: string) => void;
 }
 
 export const AdminModal: React.FC<AdminModalProps> = ({
@@ -20,6 +21,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   onSaveConfig,
   enrollmentsList,
   onClearAllEnrollments,
+  onAddAnnouncement,
 }) => {
   const [passcode, setPasscode] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
@@ -31,7 +33,19 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [maxLimitPerBatch, setMaxLimitPerBatch] = useState(config.maxLimitPerBatch);
   const [registrationOpen, setRegistrationOpen] = useState(config.registrationOpen);
 
+  const [newAnnTitle, setNewAnnTitle] = useState("");
+  const [newAnnContent, setNewAnnContent] = useState("");
+
   if (!isOpen) return null;
+
+  const handleAddAnnouncement = () => {
+    if (!newAnnTitle || !newAnnContent) return;
+    onAddAnnouncement(newAnnTitle, newAnnContent);
+    setNewAnnTitle("");
+    setNewAnnContent("");
+    setSuccessMessage("Announcement posted successfully to all student portals!");
+    setTimeout(() => setSuccessMessage(""), 3000);
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +63,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       endDate,
       maxLimitPerBatch: Number(maxLimitPerBatch),
       registrationOpen,
+      announcements: config.announcements || [],
     };
     onSaveConfig(updated);
     setSuccessMessage("Admin Settings Updated Successfully!");
@@ -237,6 +252,52 @@ export const AdminModal: React.FC<AdminModalProps> = ({
               <button onClick={handleSave} className="btn-primary" style={{ padding: "0.65rem 1.5rem" }}>
                 <Save size={16} /> Save Configuration
               </button>
+            </div>
+
+            {/* Post Faculty Announcement Section */}
+            <div style={{ marginTop: "1rem", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "1.25rem" }}>
+              <h3 style={{ fontSize: "1rem", color: "#ffffff", marginBottom: "0.75rem" }}>
+                📢 Post Announcement (Mr. Ashish Singh)
+              </h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                <input
+                  type="text"
+                  placeholder="Announcement Title (e.g. Day 1 Venue Update)"
+                  value={newAnnTitle}
+                  onChange={(e) => setNewAnnTitle(e.target.value)}
+                  style={{
+                    padding: "0.6rem 0.85rem",
+                    background: "rgba(0,0,0,0.4)",
+                    border: "1px solid rgba(255,255,255,0.15)",
+                    borderRadius: "0.6rem",
+                    color: "#ffffff",
+                    fontSize: "0.85rem"
+                  }}
+                />
+                <textarea
+                  placeholder="Announcement Content / Details..."
+                  rows={3}
+                  value={newAnnContent}
+                  onChange={(e) => setNewAnnContent(e.target.value)}
+                  style={{
+                    padding: "0.6rem 0.85rem",
+                    background: "rgba(0,0,0,0.4)",
+                    border: "1px solid rgba(255,255,255,0.15)",
+                    borderRadius: "0.6rem",
+                    color: "#ffffff",
+                    fontSize: "0.85rem",
+                    resize: "vertical"
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={handleAddAnnouncement}
+                  className="btn-secondary"
+                  style={{ color: "var(--accent)", borderColor: "rgba(56,189,248,0.4)", alignSelf: "flex-start", fontSize: "0.85rem", padding: "0.5rem 1rem" }}
+                >
+                  Post Announcement
+                </button>
+              </div>
             </div>
 
             {/* Live Registrations Database Table */}
