@@ -1,9 +1,13 @@
 "use client";
 
 import React from "react";
-import { Share2, Heart, ExternalLink, Code2 } from "lucide-react";
+import { Share2, Heart, ExternalLink, Code2, Lock } from "lucide-react";
 
-export const Footer: React.FC = () => {
+interface FooterProps {
+  onOpenFacultyPortal?: () => void;
+}
+
+export const Footer: React.FC<FooterProps> = ({ onOpenFacultyPortal }) => {
   const handleShareWhatsApp = () => {
     const text = encodeURIComponent(
       "🚀 Join the free 'C in 7 Days' Masterclass by Mr. Ashish Singh at IIST! Limited seats (160/batch) on First-Come First-Serve basis. Register now: " +
@@ -29,7 +33,7 @@ export const Footer: React.FC = () => {
             </p>
           </div>
 
-          <div>
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
             <button
               onClick={handleShareWhatsApp}
               className="btn-primary"
@@ -37,6 +41,17 @@ export const Footer: React.FC = () => {
             >
               <Share2 size={16} /> Share on WhatsApp
             </button>
+
+            {onOpenFacultyPortal && (
+              <button
+                onClick={onOpenFacultyPortal}
+                className="btn-secondary"
+                style={{ padding: "0.55rem 0.9rem", fontSize: "0.775rem", opacity: 0.7 }}
+                title="Faculty Roster Access"
+              >
+                <Lock size={13} /> Faculty Portal
+              </button>
+            )}
           </div>
         </div>
 

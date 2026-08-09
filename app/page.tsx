@@ -30,12 +30,14 @@ import { Hero } from "../components/Hero";
 import { BatchCards } from "../components/BatchCards";
 import { EnrolledDashboard } from "../components/EnrolledDashboard";
 import { AccessDeniedModal } from "../components/AccessDeniedModal";
+import { AdminModal } from "../components/AdminModal";
 import { Footer } from "../components/Footer";
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<User | any | null>(null);
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
   
   // Access Denied Modal State
   const [isAccessDeniedOpen, setIsAccessDeniedOpen] = useState(false);
@@ -244,6 +246,43 @@ export default function Home() {
     recalculateCounts(promotedMap);
   };
 
+  // Save Admin Configuration
+  const handleSaveConfig = (newConfig: AppConfig) => {
+    setConfig(newConfig);
+    saveLocalConfig(newConfig);
+    recalculateCounts(enrollments);
+  };
+
+  // Post Announcement
+  const handleAddAnnouncement = (title: string, content: string) => {
+    const newAnn: Announcement = {
+      id: "ann_" + Date.now(),
+      title,
+      content,
+      date: new Date().toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }),
+      postedBy: "Mr. Ashish Singh",
+    };
+
+    const updatedConfig: AppConfig = {
+      ...config,
+      announcements: [newAnn, ...(config.announcements || [])],
+    };
+
+    setConfig(updatedConfig);
+    saveLocalConfig(updatedConfig);
+  };
+
+  // Clear all data (Admin reset)
+  const handleClearAllEnrollments = () => {
+    setEnrollments({});
+    setUserEnrollment(null);
+    setBatch1Count(0);
+    setBatch2Count(0);
+    setWaitlist1Count(0);
+    setWaitlist2Count(0);
+    saveLocalEnrollmentMap({});
+  };
+
   if (!mounted) return null;
 
   return (
@@ -315,8 +354,19 @@ export default function Home() {
         onRetryGoogle={() => handleGoogleLogin()}
       />
 
+      {/* Faculty Control & Master Database Roster Panel */}
+      <AdminModal
+        isOpen={isAdminOpen}
+        onClose={() => setIsAdminOpen(false)}
+        config={config}
+        onSaveConfig={handleSaveConfig}
+        enrollmentsList={Object.values(enrollments)}
+        onClearAllEnrollments={handleClearAllEnrollments}
+        onAddAnnouncement={handleAddAnnouncement}
+      />
+
       {/* Footer */}
-      <Footer />
+      <Footer onOpenFacultyPortal={() => setIsAdminOpen(true)} />
     </main>
   );
 }
