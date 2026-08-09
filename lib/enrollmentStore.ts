@@ -80,6 +80,12 @@ export function saveLocalEnrollmentMap(map: Record<string, UserEnrollment>) {
   }
 }
 
+export function saveLocalEnrollment(enrollment: UserEnrollment) {
+  const current = getLocalEnrollments();
+  current[enrollment.userId] = enrollment;
+  saveLocalEnrollmentMap(current);
+}
+
 // Persistent Test User Session (to prevent session ID changing randomly)
 export function getPersistentSessionUser(): { uid: string; displayName: string; email: string } | null {
   if (typeof window === "undefined") return null;
