@@ -49,11 +49,11 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passcode === "admin123" || passcode === "ashishsir" || passcode === "iist2026") {
+    if (passcode === "IIST#AshishSir@C2026" || passcode === "AshishSir#MasterKey2026") {
       setAuthenticated(true);
       setError("");
     } else {
-      setError("Invalid Passcode. Enter admin passcode (e.g. admin123)");
+      setError("Access Denied: Invalid Faculty Passcode.");
     }
   };
 
@@ -137,9 +137,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 </button>
               </div>
             </div>
-            <p style={{ fontSize: "0.75rem", color: "var(--text-dim)" }}>
-              Default passcodes configured: <code>admin123</code> or <code>ashishsir</code>
-            </p>
           </form>
         ) : (
           /* Admin Dashboard Controls */
