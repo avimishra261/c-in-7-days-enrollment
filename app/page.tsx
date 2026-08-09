@@ -244,37 +244,47 @@ export default function Home() {
 
       {/* Main Body Container */}
       <div className="container">
-        {/* Landing Hero Section */}
-        <Hero
-          startDate={config.startDate}
-          endDate={config.endDate}
-          registrationOpen={config.registrationOpen}
-        />
-
-        {/* If Student is Enrolled -> Show Exclusive Portal */}
+        {/* If Student is Enrolled -> Show Exclusive Portal Front & Center */}
         {userEnrollment ? (
-          <EnrolledDashboard
-            userEnrollment={userEnrollment}
-            allEnrollments={Object.values(enrollments)}
-            announcements={config.announcements || []}
-            onCancelEnrollment={handleCancelEnrollment}
-            maxLimitPerBatch={config.maxLimitPerBatch}
-          />
+          <>
+            <EnrolledDashboard
+              userEnrollment={userEnrollment}
+              allEnrollments={Object.values(enrollments)}
+              announcements={config.announcements || []}
+              onCancelEnrollment={handleCancelEnrollment}
+              maxLimitPerBatch={config.maxLimitPerBatch}
+            />
+            {/* Secondary Hero details below */}
+            <div style={{ opacity: 0.8, marginTop: "3rem" }}>
+              <Hero
+                startDate={config.startDate}
+                endDate={config.endDate}
+                registrationOpen={config.registrationOpen}
+              />
+            </div>
+          </>
         ) : (
-          /* Else: Display Batch Enrollment Cards */
-          <BatchCards
-            user={user}
-            onLogin={handleGoogleLogin}
-            maxLimitPerBatch={config.maxLimitPerBatch}
-            batch1Count={batch1Count}
-            batch2Count={batch2Count}
-            waitlist1Count={waitlist1Count}
-            waitlist2Count={waitlist2Count}
-            userEnrollment={userEnrollment}
-            onEnroll={handleEnroll}
-            onCancelEnrollment={handleCancelEnrollment}
-            registrationOpen={config.registrationOpen}
-          />
+          /* Else: Display Landing Hero + Batch Cards */
+          <>
+            <Hero
+              startDate={config.startDate}
+              endDate={config.endDate}
+              registrationOpen={config.registrationOpen}
+            />
+            <BatchCards
+              user={user}
+              onLogin={handleGoogleLogin}
+              maxLimitPerBatch={config.maxLimitPerBatch}
+              batch1Count={batch1Count}
+              batch2Count={batch2Count}
+              waitlist1Count={waitlist1Count}
+              waitlist2Count={waitlist2Count}
+              userEnrollment={userEnrollment}
+              onEnroll={handleEnroll}
+              onCancelEnrollment={handleCancelEnrollment}
+              registrationOpen={config.registrationOpen}
+            />
+          </>
         )}
       </div>
 

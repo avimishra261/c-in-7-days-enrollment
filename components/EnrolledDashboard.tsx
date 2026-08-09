@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   ArrowRight,
   Trash2,
+  ListOrdered,
 } from "lucide-react";
 
 interface EnrolledDashboardProps {
@@ -34,24 +35,36 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
 }) => {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [rosterTab, setRosterTab] = useState<"batch" | "waitlist">("batch");
 
-  // Filter students in the same batch/section
-  const sectionStudents = allEnrollments
+  // Determine Waitlist Position & Section Lists
+  const isWaitlist = userEnrollment.section.startsWith("waitlist");
+
+  // Confirmed Enrolled Students (Batch 1 & Batch 2)
+  const confirmedStudents = allEnrollments
+    .filter((e) => e.section === "batch1" || e.section === "batch2")
+    .sort((a, b) => new Date(a.enrolledAt).getTime() - new Date(b.enrolledAt).getTime());
+
+  // Waitlisted Students (Waitlist 1 & Waitlist 2)
+  const waitlistedStudents = allEnrollments
+    .filter((e) => e.section === "waitlist1" || e.section === "waitlist2")
+    .sort((a, b) => new Date(a.enrolledAt).getTime() - new Date(b.enrolledAt).getTime());
+
+  // Current Section Filtered Students
+  const mySectionStudents = allEnrollments
     .filter((e) => e.section === userEnrollment.section)
     .sort((a, b) => new Date(a.enrolledAt).getTime() - new Date(b.enrolledAt).getTime());
 
-  // Determine Waitlist Position if applicable
-  const isWaitlist = userEnrollment.section.startsWith("waitlist");
-  let waitlistPosition = -1;
+  let myWaitlistPosition = -1;
   if (isWaitlist) {
-    waitlistPosition = sectionStudents.findIndex((e) => e.userId === userEnrollment.userId) + 1;
+    myWaitlistPosition = mySectionStudents.findIndex((e) => e.userId === userEnrollment.userId) + 1;
   }
 
   const sectionTitles: Record<string, string> = {
     batch1: "Batch 1 (Morning Slot)",
     batch2: "Batch 2 (Afternoon Slot)",
-    waitlist1: "Waitlist 1 (Morning Batch 1)",
-    waitlist2: "Waitlist 2 (Afternoon Batch 2)",
+    waitlist1: "Waitlist 1 (Morning Batch)",
+    waitlist2: "Waitlist 2 (Afternoon Batch)",
   };
 
   const handleCancelClick = async () => {
@@ -67,14 +80,14 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
   };
 
   return (
-    <div className="animate-fade-in" style={{ marginTop: "2rem" }}>
+    <div className="animate-fade-in" style={{ marginTop: "1.5rem" }}>
       
       {/* ================= DIGITAL REGISTRATION TICKET CARD ================= */}
       <div
         className="glass-card"
         style={{
           borderLeft: isWaitlist ? "6px solid var(--amber)" : "6px solid var(--emerald)",
-          background: isWaitlist ? "rgba(245, 158, 11, 0.06)" : "rgba(16, 185, 129, 0.06)",
+          background: isWaitlist ? "rgba(245, 158, 11, 0.08)" : "rgba(16, 185, 129, 0.08)",
           marginBottom: "2rem",
           position: "relative",
           overflow: "hidden"
@@ -83,41 +96,41 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
         <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "1.5rem" }}>
           
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.5rem" }}>
-              <span className={`badge ${isWaitlist ? "badge-amber" : "badge-emerald"}`}>
-                {isWaitlist ? `WAITLIST POSITION #${waitlistPosition}` : "OFFICIALLY ENROLLED"}
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.6rem" }}>
+              <span className={`badge ${isWaitlist ? "badge-amber" : "badge-emerald"}`} style={{ fontSize: "0.85rem", padding: "0.3rem 0.85rem" }}>
+                {isWaitlist ? `WAITLIST POSITION #${myWaitlistPosition}` : "OFFICIALLY ENROLLED"}
               </span>
               <span style={{ fontSize: "0.8rem", color: "var(--text-dim)" }}>
                 Ref: {userEnrollment.userId.slice(-6).toUpperCase()}
               </span>
             </div>
 
-            <h2 style={{ fontSize: "clamp(1.5rem, 3vw, 2.2rem)", color: "#ffffff", marginBottom: "0.4rem" }}>
+            <h2 style={{ fontSize: "clamp(1.6rem, 3vw, 2.3rem)", color: "#ffffff", marginBottom: "0.4rem", fontWeight: 700 }}>
               {sectionTitles[userEnrollment.section] || userEnrollment.section}
             </h2>
 
             <p style={{ fontSize: "0.95rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <UserCheck size={16} color="var(--accent)" /> Student: <strong style={{ color: "#ffffff" }}>{userEnrollment.userName}</strong> ({userEnrollment.userEmail})
+              <UserCheck size={18} color="var(--accent)" /> Student Account: <strong style={{ color: "#ffffff" }}>{userEnrollment.userName}</strong> ({userEnrollment.userEmail})
             </p>
 
             <p style={{ fontSize: "0.85rem", color: "var(--text-dim)", marginTop: "0.4rem" }}>
-              Timestamp: {new Date(userEnrollment.enrolledAt).toLocaleString("en-IN")}
+              Registration Time: {new Date(userEnrollment.enrolledAt).toLocaleString("en-IN")}
             </p>
           </div>
 
           <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.75rem" }}>
             <div style={{
               background: "rgba(0,0,0,0.4)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              border: "1px solid rgba(255,255,255,0.12)",
               borderRadius: "0.85rem",
               padding: "0.75rem 1.25rem",
               textAlign: "center"
             }}>
               <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", textTransform: "uppercase" }}>Batch Capacity</div>
               <div style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--accent)" }}>
-                {userEnrollment.section.startsWith("batch") 
-                  ? `${sectionStudents.length} / ${maxLimitPerBatch} Enrolled`
-                  : `${sectionStudents.length} Students in Waitlist`}
+                {!isWaitlist 
+                  ? `${mySectionStudents.length} / ${maxLimitPerBatch} Enrolled`
+                  : `Position #${myWaitlistPosition} of ${mySectionStudents.length} Waiting`}
               </div>
             </div>
 
@@ -132,28 +145,27 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
 
         </div>
 
-        {/* Waitlist Specific Status Banner */}
+        {/* Waitlist Position Status Alert */}
         {isWaitlist && (
           <div style={{
             marginTop: "1.5rem",
             padding: "1rem 1.25rem",
-            background: "rgba(245, 158, 11, 0.12)",
-            border: "1px dashed rgba(245, 158, 11, 0.4)",
+            background: "rgba(245, 158, 11, 0.15)",
+            border: "1px dashed rgba(245, 158, 11, 0.5)",
             borderRadius: "0.85rem",
             display: "flex",
             alignItems: "center",
             gap: "0.8rem",
             color: "#fcd34d",
-            fontSize: "0.9rem"
+            fontSize: "0.95rem"
           }}>
-            <AlertCircle size={20} />
+            <AlertCircle size={22} color="#f59e0b" />
             <div>
-              <strong>Automated Waitlist Position #{waitlistPosition}:</strong> You are next in line! As soon as any student drops out of Batch 1/2, your registration will automatically be upgraded to a confirmed seat.
+              <strong style={{ color: "#ffffff" }}>Live Waitlist Position #{myWaitlistPosition}:</strong> You are next in line! When an enrolled student cancels their seat, your registration is automatically promoted to Batch 1/2.
             </div>
           </div>
         )}
       </div>
-
 
       {/* ================= CANCEL SEAT CONFIRMATION MODAL ================= */}
       {showCancelConfirm && (
@@ -197,8 +209,7 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
         </div>
       )}
 
-
-      {/* ================= TWO COLUMN LAYOUT: ANNOUNCEMENTS & ROSTER ================= */}
+      {/* ================= TWO COLUMN LAYOUT: ANNOUNCEMENTS & TRANSPARENT ROSTER ================= */}
       <div className="grid-2" style={{ gap: "2rem" }}>
         
         {/* FACULTY ANNOUNCEMENTS */}
@@ -240,62 +251,149 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
           )}
         </div>
 
-
-        {/* TRANSPARENT ENROLLED ROSTER */}
+        {/* TRANSPARENT STUDENT ROSTER WITH TABS (ENROLLED vs WAITLIST) */}
         <div className="glass-card">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "0.85rem", marginBottom: "1.25rem" }}>
+          
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "0.85rem", marginBottom: "1rem" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
               <Users size={20} color="var(--emerald)" />
               <h3 style={{ fontSize: "1.2rem", color: "#ffffff" }}>Transparent Student Roster</h3>
             </div>
-            <span className="badge badge-emerald" style={{ fontSize: "0.7rem" }}>
-              {sectionStudents.length} Verified
-            </span>
           </div>
 
-          <p style={{ fontSize: "0.8rem", color: "var(--text-dim)", marginBottom: "1rem" }}>
-            Chronological first-come first-serve order of students registered in your section:
-          </p>
+          {/* Roster Tabs */}
+          <div style={{ display: "flex", gap: "0.5rem", background: "rgba(0,0,0,0.4)", padding: "0.25rem", borderRadius: "0.75rem", marginBottom: "1rem" }}>
+            <button
+              onClick={() => setRosterTab("batch")}
+              style={{
+                flex: 1,
+                padding: "0.45rem",
+                borderRadius: "0.6rem",
+                border: "none",
+                background: rosterTab === "batch" ? "var(--primary)" : "transparent",
+                color: rosterTab === "batch" ? "#ffffff" : "var(--text-muted)",
+                fontSize: "0.8rem",
+                fontWeight: 600,
+                cursor: "pointer"
+              }}
+            >
+              Enrolled Students ({confirmedStudents.length})
+            </button>
+            <button
+              onClick={() => setRosterTab("waitlist")}
+              style={{
+                flex: 1,
+                padding: "0.45rem",
+                borderRadius: "0.6rem",
+                border: "none",
+                background: rosterTab === "waitlist" ? "var(--amber)" : "transparent",
+                color: rosterTab === "waitlist" ? "#ffffff" : "var(--text-muted)",
+                fontSize: "0.8rem",
+                fontWeight: 600,
+                cursor: "pointer"
+              }}
+            >
+              Waitlist Queue ({waitlistedStudents.length})
+            </button>
+          </div>
 
-          <div style={{ maxHeight: "280px", overflowY: "auto", borderRadius: "0.75rem", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.3)" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.825rem", textAlign: "left" }}>
-              <thead>
-                <tr style={{ background: "rgba(255,255,255,0.05)", borderBottom: "1px solid rgba(255,255,255,0.08)", color: "var(--text-muted)" }}>
-                  <th style={{ padding: "0.6rem 0.8rem" }}>#</th>
-                  <th style={{ padding: "0.6rem 0.8rem" }}>Student Name</th>
-                  <th style={{ padding: "0.6rem 0.8rem" }}>Email</th>
-                  <th style={{ padding: "0.6rem 0.8rem" }}>Joined At</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sectionStudents.map((st, idx) => {
-                  const isCurrentUser = st.userId === userEnrollment.userId;
-                  return (
-                    <tr
-                      key={st.userId}
-                      style={{
-                        borderBottom: "1px solid rgba(255,255,255,0.04)",
-                        background: isCurrentUser ? "rgba(16, 185, 129, 0.15)" : "transparent",
-                        fontWeight: isCurrentUser ? 600 : 400
-                      }}
-                    >
-                      <td style={{ padding: "0.6rem 0.8rem", color: isCurrentUser ? "#6ee7b7" : "var(--text-dim)" }}>
-                        {idx + 1}
-                      </td>
-                      <td style={{ padding: "0.6rem 0.8rem", color: isCurrentUser ? "#ffffff" : "var(--text-main)" }}>
-                        {st.userName} {isCurrentUser && <span style={{ color: "#34d399", fontSize: "0.75rem" }}>(You)</span>}
-                      </td>
-                      <td style={{ padding: "0.6rem 0.8rem", color: "var(--text-muted)" }}>
-                        {st.userEmail}
-                      </td>
-                      <td style={{ padding: "0.6rem 0.8rem", color: "var(--text-dim)", fontSize: "0.75rem" }}>
-                        {new Date(st.enrolledAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+          {/* Table Container */}
+          <div style={{ maxHeight: "320px", overflowY: "auto", borderRadius: "0.75rem", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.3)" }}>
+            {rosterTab === "batch" ? (
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.825rem", textAlign: "left" }}>
+                <thead>
+                  <tr style={{ background: "rgba(255,255,255,0.05)", borderBottom: "1px solid rgba(255,255,255,0.08)", color: "var(--text-muted)" }}>
+                    <th style={{ padding: "0.6rem 0.8rem" }}>#</th>
+                    <th style={{ padding: "0.6rem 0.8rem" }}>Student Name</th>
+                    <th style={{ padding: "0.6rem 0.8rem" }}>Section</th>
+                    <th style={{ padding: "0.6rem 0.8rem" }}>Joined At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {confirmedStudents.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} style={{ padding: "1.5rem", textAlign: "center", color: "var(--text-dim)" }}>
+                        No enrolled students yet.
                       </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  ) : (
+                    confirmedStudents.map((st, idx) => {
+                      const isCurrentUser = st.userId === userEnrollment.userId;
+                      return (
+                        <tr
+                          key={st.userId}
+                          style={{
+                            borderBottom: "1px solid rgba(255,255,255,0.04)",
+                            background: isCurrentUser ? "rgba(16, 185, 129, 0.15)" : "transparent",
+                            fontWeight: isCurrentUser ? 600 : 400
+                          }}
+                        >
+                          <td style={{ padding: "0.6rem 0.8rem", color: isCurrentUser ? "#6ee7b7" : "var(--text-dim)" }}>
+                            {idx + 1}
+                          </td>
+                          <td style={{ padding: "0.6rem 0.8rem", color: isCurrentUser ? "#ffffff" : "var(--text-main)" }}>
+                            {st.userName} {isCurrentUser && <span style={{ color: "#34d399", fontSize: "0.75rem" }}>(You)</span>}
+                          </td>
+                          <td style={{ padding: "0.6rem 0.8rem", color: "var(--accent)", textTransform: "uppercase" }}>
+                            {st.section}
+                          </td>
+                          <td style={{ padding: "0.6rem 0.8rem", color: "var(--text-dim)", fontSize: "0.75rem" }}>
+                            {new Date(st.enrolledAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            ) : (
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.825rem", textAlign: "left" }}>
+                <thead>
+                  <tr style={{ background: "rgba(245, 158, 11, 0.1)", borderBottom: "1px solid rgba(255,255,255,0.08)", color: "#fcd34d" }}>
+                    <th style={{ padding: "0.6rem 0.8rem" }}>Waitlist #</th>
+                    <th style={{ padding: "0.6rem 0.8rem" }}>Student Name</th>
+                    <th style={{ padding: "0.6rem 0.8rem" }}>Target Batch</th>
+                    <th style={{ padding: "0.6rem 0.8rem" }}>Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {waitlistedStudents.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} style={{ padding: "1.5rem", textAlign: "center", color: "var(--text-dim)" }}>
+                        Waitlist is currently empty. All seats available!
+                      </td>
+                    </tr>
+                  ) : (
+                    waitlistedStudents.map((st, idx) => {
+                      const isCurrentUser = st.userId === userEnrollment.userId;
+                      return (
+                        <tr
+                          key={st.userId}
+                          style={{
+                            borderBottom: "1px solid rgba(255,255,255,0.04)",
+                            background: isCurrentUser ? "rgba(245, 158, 11, 0.2)" : "transparent",
+                            fontWeight: isCurrentUser ? 600 : 400
+                          }}
+                        >
+                          <td style={{ padding: "0.6rem 0.8rem", color: isCurrentUser ? "#fcd34d" : "var(--text-dim)" }}>
+                            Queue #{idx + 1}
+                          </td>
+                          <td style={{ padding: "0.6rem 0.8rem", color: isCurrentUser ? "#ffffff" : "var(--text-main)" }}>
+                            {st.userName} {isCurrentUser && <span style={{ color: "#fcd34d", fontSize: "0.75rem" }}>(You)</span>}
+                          </td>
+                          <td style={{ padding: "0.6rem 0.8rem", color: "var(--amber)", textTransform: "uppercase" }}>
+                            {st.section}
+                          </td>
+                          <td style={{ padding: "0.6rem 0.8rem", color: "var(--text-dim)", fontSize: "0.75rem" }}>
+                            {new Date(st.enrolledAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
 
