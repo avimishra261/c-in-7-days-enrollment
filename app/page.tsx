@@ -1,18 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Navbar } from "../components/Navbar";
-import { Hero } from "../components/Hero";
-import { BatchCards } from "../components/BatchCards";
-import { EnrolledDashboard } from "../components/EnrolledDashboard";
-import { AuthModal } from "../components/AuthModal";
-import { AdminModal } from "../components/AdminModal";
-import { Footer } from "../components/Footer";
-import {
-  auth,
-  db,
-  googleProvider,
-} from "../lib/firebase";
+import { db, auth, googleProvider } from "../lib/firebase";
 import {
   signInWithPopup,
   signOut,
@@ -34,16 +23,23 @@ import {
   setPersistentSessionUser,
   autoPromoteWaitlist,
   UserEnrollment,
-  UserAccount,
   Announcement,
 } from "../lib/enrollmentStore";
+import { Navbar } from "../components/Navbar";
+import { Hero } from "../components/Hero";
+import { BatchCards } from "../components/BatchCards";
+import { EnrolledDashboard } from "../components/EnrolledDashboard";
+import { AccessDeniedModal } from "../components/AccessDeniedModal";
+import { Footer } from "../components/Footer";
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<User | any | null>(null);
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
-  const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  
+  // Access Denied Modal State
+  const [isAccessDeniedOpen, setIsAccessDeniedOpen] = useState(false);
+  const [rejectedEmail, setRejectedEmail] = useState("");
 
   // Seat Counters State
   const [batch1Count, setBatch1Count] = useState<number>(0);
@@ -74,63 +70,36 @@ export default function Home() {
     }
   }, []);
 
-  // Update userEnrollment when user or enrollments change
-  useEffect(() => {
-    if (user && enrollments[user.uid]) {
-      setUserEnrollment(enrollments[user.uid]);
-    } else {
-      setUserEnrollment(null);
-    }
-  }, [user, enrollments]);
-
-  // Recalculate Seat Counters from Enrollments
-  const recalculateCounts = (data: Record<string, UserEnrollment>) => {
-    let b1 = 0;
-    let b2 = 0;
-    let w1 = 0;
-    let w2 = 0;
-
-    Object.values(data).forEach((item) => {
-      if (item.section === "batch1") b1++;
-      else if (item.section === "batch2") b2++;
-      else if (item.section === "waitlist1") w1++;
-      else if (item.section === "waitlist2") w2++;
-    });
-
-    setBatch1Count(b1);
-    setBatch2Count(b2);
-    setWaitlist1Count(w1);
-    setWaitlist2Count(w2);
-  };
-
-  // Firebase Auth Listener
+  // Sync Firebase Auth State
   useEffect(() => {
     try {
-      const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-        if (currentUser) {
-          const email = currentUser.email?.toLowerCase() || "";
+      const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+        if (firebaseUser) {
+          const email = firebaseUser.email?.toLowerCase() || "";
+          
           if (email.endsWith("@indoreinstitute.com") || email.includes("admin")) {
-            setUser(currentUser);
-            setPersistentSessionUser({
-              uid: currentUser.uid,
-              displayName: currentUser.displayName || currentUser.email?.split("@")[0] || "Student",
-              email: currentUser.email || "",
-            });
+            const loggedUser = {
+              uid: firebaseUser.uid,
+              displayName: firebaseUser.displayName || email.split("@")[0],
+              email: email,
+              photoURL: firebaseUser.photoURL,
+            };
+            setUser(loggedUser);
+            setPersistentSessionUser(loggedUser);
+          } else {
+            signOut(auth);
+            setRejectedEmail(email);
+            setIsAccessDeniedOpen(true);
           }
         }
       });
       return () => unsubscribe();
     } catch (e) {
-      console.warn("Firebase Auth listener inactive.", e);
+      console.warn("Firebase Auth listener initialized.", e);
     }
   }, []);
 
-  // Open Auth Modal
-  const handleOpenAuth = () => {
-    setIsAuthOpen(true);
-  };
-
-  // Handle Google Sign-In
+  // Direct Google Sign-In Trigger
   const handleGoogleLogin = async () => {
     try {
       const res = await signInWithPopup(auth, googleProvider);
@@ -139,7 +108,8 @@ export default function Home() {
       // Email Domain Security Check
       if (!email.endsWith("@indoreinstitute.com") && !email.includes("admin")) {
         await signOut(auth);
-        alert("Access Restricted: Please sign in using your official college email address (@indoreinstitute.com).");
+        setRejectedEmail(email);
+        setIsAccessDeniedOpen(true);
         return;
       }
       
@@ -153,23 +123,7 @@ export default function Home() {
       setUser(loggedUser);
       setPersistentSessionUser(loggedUser);
     } catch (err: any) {
-      console.warn("Google login popup closed or keys not set. Opening Auth Modal for student entry.", err);
-      setIsAuthOpen(true);
-    }
-  };
-
-  // Account Authenticated with Real Student Email and Password
-  const handleAccountAuthenticated = (account: UserAccount) => {
-    const loggedUser = {
-      uid: account.uid,
-      displayName: account.name,
-      email: account.email,
-    };
-
-    setUser(loggedUser);
-    setPersistentSessionUser(loggedUser);
-    if (enrollments[account.uid]) {
-      setUserEnrollment(enrollments[account.uid]);
+      console.warn("Google login popup closed or cancelled.", err);
     }
   };
 
@@ -177,76 +131,85 @@ export default function Home() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-    } catch (e) {
-      console.warn(e);
-    }
+    } catch (e) { console.error(e); }
     setUser(null);
-    setUserEnrollment(null);
     setPersistentSessionUser(null);
+    setUserEnrollment(null);
   };
 
-  // Handle Enrollment Action with Security Lock
-  const handleEnroll = async (
-    section: "batch1" | "batch2" | "waitlist1" | "waitlist2"
-  ): Promise<{ success: boolean; message: string }> => {
+  // Recalculate Seat Counts
+  const recalculateCounts = (data: Record<string, UserEnrollment>) => {
+    let b1 = 0, b2 = 0, w1 = 0, w2 = 0;
+    Object.values(data).forEach((item) => {
+      if (item.section === "batch1") b1++;
+      if (item.section === "batch2") b2++;
+      if (item.section === "waitlist1") w1++;
+      if (item.section === "waitlist2") w2++;
+    });
+    setBatch1Count(b1);
+    setBatch2Count(b2);
+    setWaitlist1Count(w1);
+    setWaitlist2Count(w2);
+  };
+
+  // Handle Student Enrollment Action
+  const handleEnroll = async (section: "batch1" | "batch2" | "waitlist1" | "waitlist2"): Promise<{ success: boolean; message: string }> => {
     if (!user) {
-      setIsAuthOpen(true);
-      return { success: false, message: "Please sign in with your college email (@indoreinstitute.com)." };
+      handleGoogleLogin();
+      return { success: false, message: "Please sign in with your official @indoreinstitute.com Google account." };
     }
 
     const email = user.email?.toLowerCase() || "";
     if (!email.endsWith("@indoreinstitute.com") && !email.includes("admin")) {
-      return {
-        success: false,
-        message: "Domain Lock: Only official IIST email addresses (@indoreinstitute.com) are eligible for enrollment.",
-      };
+      setRejectedEmail(email);
+      setIsAccessDeniedOpen(true);
+      return { success: false, message: "Security Lock: Only @indoreinstitute.com emails are allowed." };
     }
 
-    // Check Security Rule: Single Enrollment Limit
     if (userEnrollment) {
       return {
         success: false,
-        message: `Security Lock: You are already registered in ${userEnrollment.section.toUpperCase()}. Multiple registrations are strictly blocked.`,
+        message: `Security Lock: You are already registered for ${userEnrollment.section.toUpperCase()}.`,
       };
     }
 
-    const newEnrollment: UserEnrollment = {
+    const enrollmentData: UserEnrollment = {
       userId: user.uid,
-      userName: user.displayName || user.email || "Student",
-      userEmail: user.email || "student@indoreinstitute.com",
+      userName: user.displayName || user.email.split("@")[0],
+      userEmail: user.email,
       section,
       enrolledAt: new Date().toISOString(),
     };
 
-    // Update Local State & Persistence
-    const updatedMap = { ...enrollments, [user.uid]: newEnrollment };
+    // Update Local Storage
+    const updatedMap = { ...enrollments, [user.uid]: enrollmentData };
     setEnrollments(updatedMap);
-    setUserEnrollment(newEnrollment);
+    setUserEnrollment(enrollmentData);
     saveLocalEnrollmentMap(updatedMap);
     recalculateCounts(updatedMap);
 
-    // Try Firestore Sync
+    // Sync to Firestore Database (if online)
     try {
-      const userRef = doc(db, "enrollments", user.uid);
-      await setDoc(userRef, newEnrollment);
+      await setDoc(doc(db, "enrollments", user.uid), enrollmentData);
     } catch (e) {
-      console.warn("Saved to local storage (Firebase keys pending setup).", e);
+      console.warn("Firestore synced to local store fallback.", e);
     }
 
-    const sectionNames: Record<string, string> = {
-      batch1: "Batch 1 (Morning)",
-      batch2: "Batch 2 (Afternoon)",
-      waitlist1: "Waitlist 1",
-      waitlist2: "Waitlist 2",
-    };
+    const sectionLabel = section === "batch1" 
+      ? "Batch 1 (Morning Slot)" 
+      : section === "batch2" 
+        ? "Batch 2 (Afternoon Slot)" 
+        : section === "waitlist1" 
+          ? "Waitlist 1" 
+          : "Waitlist 2";
 
     return {
       success: true,
-      message: `Congratulations! Successfully reserved your seat in ${sectionNames[section]}!`,
+      message: `Successfully enrolled in ${sectionLabel}! Your seat is confirmed.`,
     };
   };
 
-  // Cancel Enrollment with Automated Waitlist Promotion
+  // Handle Cancel Seat (Enrolled Portal)
   const handleCancelEnrollment = async () => {
     if (!user || !userEnrollment) return;
 
@@ -262,48 +225,6 @@ export default function Home() {
     recalculateCounts(promotedMap);
   };
 
-  // Save Admin Configuration
-  const handleSaveConfig = (newConfig: AppConfig) => {
-    setConfig(newConfig);
-    saveLocalConfig(newConfig);
-
-    // Re-evaluate auto promotion if max limit changed
-    const promoted = autoPromoteWaitlist(enrollments, newConfig.maxLimitPerBatch);
-    setEnrollments(promoted);
-    saveLocalEnrollmentMap(promoted);
-    recalculateCounts(promoted);
-  };
-
-  // Add Faculty Announcement
-  const handleAddAnnouncement = (title: string, content: string) => {
-    const newAnn: Announcement = {
-      id: "ann_" + Date.now(),
-      title,
-      content,
-      date: new Date().toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }),
-      postedBy: "Mr. Ashish Singh",
-    };
-
-    const updatedConfig: AppConfig = {
-      ...config,
-      announcements: [newAnn, ...(config.announcements || [])],
-    };
-
-    setConfig(updatedConfig);
-    saveLocalConfig(updatedConfig);
-  };
-
-  // Clear all data (Admin reset)
-  const handleClearAllEnrollments = () => {
-    setEnrollments({});
-    setUserEnrollment(null);
-    setBatch1Count(0);
-    setBatch2Count(0);
-    setWaitlist1Count(0);
-    setWaitlist2Count(0);
-    saveLocalEnrollmentMap({});
-  };
-
   if (!mounted) return null;
 
   return (
@@ -317,17 +238,20 @@ export default function Home() {
       {/* Navigation */}
       <Navbar
         user={user}
-        onLogin={handleOpenAuth}
         onLogout={handleLogout}
-        onOpenAdmin={() => setIsAdminOpen(true)}
         userEnrollmentSection={userEnrollment?.section}
       />
 
       {/* Main Body Container */}
       <div className="container">
-        <Hero startDate={config.startDate} endDate={config.endDate} />
+        {/* Landing Hero Section */}
+        <Hero
+          startDate={config.startDate}
+          endDate={config.endDate}
+          registrationOpen={config.registrationOpen}
+        />
 
-        {/* If Enrolled: Display Dedicated Enrolled Student Dashboard */}
+        {/* If Student is Enrolled -> Show Exclusive Portal */}
         {userEnrollment ? (
           <EnrolledDashboard
             userEnrollment={userEnrollment}
@@ -340,7 +264,7 @@ export default function Home() {
           /* Else: Display Batch Enrollment Cards */
           <BatchCards
             user={user}
-            onLogin={handleOpenAuth}
+            onLogin={handleGoogleLogin}
             maxLimitPerBatch={config.maxLimitPerBatch}
             batch1Count={batch1Count}
             batch2Count={batch2Count}
@@ -354,23 +278,12 @@ export default function Home() {
         )}
       </div>
 
-      {/* Auth Modal Prompt */}
-      <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        onGoogleLogin={handleGoogleLogin}
-        onAccountAuthenticated={handleAccountAuthenticated}
-      />
-
-      {/* Admin Panel Modal */}
-      <AdminModal
-        isOpen={isAdminOpen}
-        onClose={() => setIsAdminOpen(false)}
-        config={config}
-        onSaveConfig={handleSaveConfig}
-        enrollmentsList={Object.values(enrollments)}
-        onClearAllEnrollments={handleClearAllEnrollments}
-        onAddAnnouncement={handleAddAnnouncement}
+      {/* Access Denied Custom Glass Modal */}
+      <AccessDeniedModal
+        isOpen={isAccessDeniedOpen}
+        rejectedEmail={rejectedEmail}
+        onClose={() => setIsAccessDeniedOpen(false)}
+        onRetryGoogle={handleGoogleLogin}
       />
 
       {/* Footer */}

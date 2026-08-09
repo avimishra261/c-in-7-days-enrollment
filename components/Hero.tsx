@@ -6,6 +6,7 @@ import { Sparkles, Calendar, Clock, Award, CheckCircle2, Zap } from "lucide-reac
 interface HeroProps {
   startDate: string;
   endDate: string;
+  registrationOpen?: boolean;
 }
 
 export const Hero: React.FC<HeroProps> = ({ startDate, endDate }) => {
