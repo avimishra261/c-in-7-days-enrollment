@@ -73,27 +73,38 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span style={{ display: "inline" }}>Admin</span>
           </button>
 
-          {/* Auth Button */}
+          {/* Auth User Info Badge */}
           {user ? (
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "rgba(255,255,255,0.05)", padding: "0.35rem 0.75rem", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                background: "rgba(56, 189, 248, 0.12)",
+                padding: "0.4rem 0.85rem",
+                borderRadius: "999px",
+                border: "1px solid rgba(56, 189, 248, 0.3)"
+              }}>
                 {user.photoURL ? (
-                  <img src={user.photoURL} alt={user.displayName || "User"} style={{ width: "24px", height: "24px", borderRadius: "50%" }} />
+                  <img src={user.photoURL} alt={user.displayName || "User"} style={{ width: "22px", height: "22px", borderRadius: "50%" }} />
                 ) : (
                   <UserIcon size={16} color="var(--accent)" />
                 )}
-                <span style={{ fontSize: "0.85rem", fontWeight: 500, maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {user.displayName || user.email?.split("@")[0]}
-                </span>
+                <div style={{ display: "flex", flexDirection: "column", textAlign: "left" }}>
+                  <span style={{ fontSize: "0.7rem", color: "var(--text-dim)", textTransform: "uppercase", lineHeight: 1 }}>Logged In Account</span>
+                  <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#ffffff" }}>
+                    {user.email || user.displayName}
+                  </span>
+                </div>
               </div>
 
               <button
                 onClick={onLogout}
                 className="btn-secondary"
-                style={{ padding: "0.5rem", borderRadius: "50%", background: "rgba(244,63,94,0.1)", borderColor: "rgba(244,63,94,0.2)", color: "#fda4af" }}
+                style={{ padding: "0.45rem 0.75rem", fontSize: "0.8rem", color: "#fda4af", borderColor: "rgba(244,63,94,0.3)" }}
                 title="Sign Out"
               >
-                <LogOut size={16} />
+                <LogOut size={14} /> Sign Out
               </button>
             </div>
           ) : (

@@ -106,7 +106,27 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
         </div>
       )}
 
-      {/* User Already Enrolled Security Status Banner */}
+      {/* Active Logged In Account Banner */}
+      {user && !userEnrollment && (
+        <div className="glass-card animate-fade-in" style={{ background: "rgba(56, 189, 248, 0.08)", borderColor: "rgba(56, 189, 248, 0.3)", marginBottom: "2rem", padding: "1rem 1.25rem" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(56,189,248,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <UserCheck size={20} color="var(--accent)" />
+              </div>
+              <div>
+                <span style={{ fontSize: "0.75rem", color: "var(--text-dim)", textTransform: "uppercase", fontWeight: 600 }}>Active Student Session</span>
+                <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "#ffffff" }}>
+                  {user.email || user.displayName}
+                </div>
+              </div>
+            </div>
+            <span className="badge badge-primary" style={{ fontSize: "0.75rem" }}>
+              Verified @indoreinstitute.com
+            </span>
+          </div>
+        </div>
+      )}
       {userEnrollment && (
         <div className="glass-card animate-fade-in" style={{ background: "rgba(16, 185, 129, 0.08)", borderColor: "rgba(16, 185, 129, 0.3)", marginBottom: "2.5rem" }}>
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
