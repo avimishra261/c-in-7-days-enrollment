@@ -39,6 +39,7 @@ import {
 } from "../lib/enrollmentStore";
 
 export default function Home() {
+  const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<User | any | null>(null);
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
@@ -56,6 +57,7 @@ export default function Home() {
 
   // Initialize Config & Local State & Persistent Session User
   useEffect(() => {
+    setMounted(true);
     const loadedConfig = getLocalConfig();
     setConfig(loadedConfig);
 
@@ -301,6 +303,8 @@ export default function Home() {
     setWaitlist2Count(0);
     saveLocalEnrollmentMap({});
   };
+
+  if (!mounted) return null;
 
   return (
     <main style={{ minHeight: "100vh", position: "relative" }}>
