@@ -88,6 +88,12 @@ export default function Home() {
             };
             setUser(loggedUser);
             setPersistentSessionUser(loggedUser);
+
+            // Check if user is already enrolled
+            const currentEnrollments = getLocalEnrollments();
+            if (currentEnrollments[firebaseUser.uid]) {
+              setUserEnrollment(currentEnrollments[firebaseUser.uid]);
+            }
           } else {
             signOut(auth);
             setRejectedEmail(email);
@@ -108,10 +114,13 @@ export default function Home() {
   ): Promise<{ success: boolean; message: string }> => {
     const currentEnrollments = getLocalEnrollments();
 
+    // IF ALREADY ENROLLED IN ANY SECTION -> LOCK & LOAD ENROLLED DASHBOARD!
     if (currentEnrollments[targetUser.uid]) {
+      const existing = currentEnrollments[targetUser.uid];
+      setUserEnrollment(existing);
       return {
-        success: false,
-        message: `Security Lock: You are already registered for ${currentEnrollments[targetUser.uid].section.toUpperCase()}.`,
+        success: true,
+        message: `Welcome back! You are registered for ${existing.section.toUpperCase()}. Here is your ticket and live student roster.`,
       };
     }
 
@@ -151,7 +160,7 @@ export default function Home() {
     };
   };
 
-  // Direct Google Sign-In Trigger with Optional Immediate Auto-Enrollment
+  // Direct Google Sign-In Trigger with Automatic Enrollment / Existing Roster Loading
   const handleGoogleLogin = async (targetSection?: "batch1" | "batch2" | "waitlist1" | "waitlist2") => {
     try {
       const res = await signInWithPopup(auth, googleProvider);
@@ -175,7 +184,14 @@ export default function Home() {
       setUser(loggedUser);
       setPersistentSessionUser(loggedUser);
 
-      // Auto-enroll immediately if target section was clicked!
+      // Check if student is ALREADY registered in any section!
+      const currentEnrollments = getLocalEnrollments();
+      if (currentEnrollments[res.user.uid]) {
+        setUserEnrollment(currentEnrollments[res.user.uid]);
+        return;
+      }
+
+      // If NOT enrolled yet and targetSection was clicked, auto-enroll now!
       if (targetSection) {
         await performEnrollment(loggedUser, targetSection);
       }
@@ -217,7 +233,7 @@ export default function Home() {
   const handleEnroll = async (section: "batch1" | "batch2" | "waitlist1" | "waitlist2"): Promise<{ success: boolean; message: string }> => {
     if (!user) {
       await handleGoogleLogin(section);
-      return { success: true, message: "Authenticating & Enrolling..." };
+      return { success: true, message: "Authenticating..." };
     }
 
     const email = user.email?.toLowerCase() || "";
