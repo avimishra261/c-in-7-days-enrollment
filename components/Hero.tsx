@@ -25,7 +25,7 @@ export const Hero: React.FC<HeroProps> = ({ startDate, endDate }) => {
       <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.4rem 1rem", borderRadius: "999px", background: "rgba(56, 189, 248, 0.1)", border: "1px solid rgba(56, 189, 248, 0.25)", marginBottom: "1.5rem" }}>
         <Sparkles size={16} color="#38bdf8" />
         <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#38bdf8" }}>
-          Free 7-Day Intensive C Programming Masterclass
+          Free 7-Day C Masterclass • Restricted to @indoreinstitute.com
         </span>
       </div>
 

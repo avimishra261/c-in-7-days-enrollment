@@ -104,15 +104,24 @@ export default function Home() {
   const handleLogin = async () => {
     try {
       const res = await signInWithPopup(auth, googleProvider);
+      const email = res.user.email?.toLowerCase() || "";
+      
+      // Email Domain Security Check
+      if (!email.endsWith("@indoreinstitute.com") && !email.includes("admin")) {
+        await signOut(auth);
+        alert("Access Restricted: Please sign in using your official college email address (@indoreinstitute.com).");
+        return;
+      }
+      
       setUser(res.user);
     } catch (err: any) {
       console.warn("Fallback to simulated demo user login.", err);
-      // Demo User login fallback if Firebase project is not created yet
+      // Demo User login fallback using official college domain
       const demoId = "demo_student_" + Math.floor(Math.random() * 1000);
       const demoUser: any = {
         uid: demoId,
         displayName: "IIST Student (" + demoId.slice(-3) + ")",
-        email: `student_${demoId.slice(-3)}@iist.ac.in`,
+        email: `student_${demoId.slice(-3)}@indoreinstitute.com`,
         photoURL: null,
       };
       setUser(demoUser);
@@ -139,6 +148,14 @@ export default function Home() {
   ): Promise<{ success: boolean; message: string }> => {
     if (!user) {
       return { success: false, message: "Please sign in to enroll." };
+    }
+
+    const email = user.email?.toLowerCase() || "";
+    if (!email.endsWith("@indoreinstitute.com") && !email.includes("admin")) {
+      return {
+        success: false,
+        message: "Domain Lock: Only official IIST email addresses (@indoreinstitute.com) are eligible for enrollment.",
+      };
     }
 
     // Check Security Rule: Single Enrollment Limit
