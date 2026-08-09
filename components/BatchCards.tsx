@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { User } from "firebase/auth";
-import { UserCheck, Clock, AlertTriangle, ShieldAlert, CheckCircle, ArrowRight, Lock, Users } from "lucide-react";
+import { UserCheck, Clock, AlertTriangle, ShieldAlert, CheckCircle, ArrowRight, Lock, Users, LogIn } from "lucide-react";
 import confetti from "canvas-confetti";
 
 interface BatchCardsProps {
@@ -52,15 +52,10 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
       return;
     }
 
-    if (!user) {
-      onLogin(); // Opens Auth Modal
-      return;
-    }
-
     if (userEnrollment) {
       setFeedback({
         type: "error",
-        message: `Security Lock: You are already enrolled in ${userEnrollment.section.toUpperCase()}. Each student can only select 1 section!`,
+        message: `Security Lock: You are already registered in ${userEnrollment.section.toUpperCase()}. Each student can only select 1 section!`,
       });
       return;
     }
@@ -127,37 +122,6 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
           </div>
         </div>
       )}
-      {userEnrollment && (
-        <div className="glass-card animate-fade-in" style={{ background: "rgba(16, 185, 129, 0.08)", borderColor: "rgba(16, 185, 129, 0.3)", marginBottom: "2.5rem" }}>
-          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-              <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "rgba(16,185,129,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <UserCheck size={26} color="#6ee7b7" />
-              </div>
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <span className="badge badge-emerald">Verified Registration</span>
-                  <span style={{ fontSize: "0.8rem", color: "var(--text-dim)" }}>ID: {userEnrollment.userEmail}</span>
-                </div>
-                <h3 style={{ fontSize: "1.25rem", color: "#ffffff", marginTop: "0.2rem" }}>
-                  You are registered for <span style={{ color: "#34d399", textTransform: "uppercase" }}>{sectionTitles[userEnrollment.section] || userEnrollment.section}</span>
-                </h3>
-                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
-                  Enrolled at: {new Date(userEnrollment.enrolledAt).toLocaleString("en-IN")}
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={onCancelEnrollment}
-              className="btn-secondary"
-              style={{ color: "#fda4af", borderColor: "rgba(244,63,94,0.3)", padding: "0.6rem 1rem", fontSize: "0.85rem" }}
-            >
-              Cancel My Seat
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Batches Grid */}
       <div className="grid-2">
@@ -206,15 +170,13 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
                 onClick={() => handleEnrollClick("batch1")}
                 disabled={loadingSection === "batch1"}
                 className="btn-primary"
-                style={{ width: "100%" }}
+                style={{ width: "100%", padding: "0.85rem", fontSize: "0.95rem" }}
               >
                 {loadingSection === "batch1" 
-                  ? "Processing Seat..." 
+                  ? "Signing in & Enrolling..." 
                   : userEnrollment 
                     ? "Already Registered Elsewhere" 
-                    : !user 
-                      ? "Sign In to Enroll in Batch 1" 
-                      : "Enroll in Batch 1"}
+                    : "Enroll in Batch 1"}
               </button>
             ) : (
               <div style={{ background: "rgba(245, 158, 11, 0.08)", border: "1px dashed rgba(245, 158, 11, 0.3)", borderRadius: "0.85rem", padding: "1rem", textAlign: "center" }}>
@@ -228,13 +190,11 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
                   onClick={() => handleEnrollClick("waitlist1")}
                   disabled={loadingSection === "waitlist1"}
                   className="btn-secondary"
-                  style={{ width: "100%", color: "#fcd34d", borderColor: "rgba(245, 158, 11, 0.4)" }}
+                  style={{ width: "100%", color: "#fcd34d", borderColor: "rgba(245, 158, 11, 0.4)", padding: "0.75rem" }}
                 >
                   {loadingSection === "waitlist1" 
                     ? "Joining Waitlist..." 
-                    : !user 
-                      ? "Sign In to Join Waitlist 1" 
-                      : "Join Waitlist 1"}
+                    : "Join Waitlist 1"}
                 </button>
               </div>
             )}
@@ -288,15 +248,13 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
                 onClick={() => handleEnrollClick("batch2")}
                 disabled={loadingSection === "batch2"}
                 className="btn-primary"
-                style={{ width: "100%", background: "linear-gradient(135deg, #0284c7 0%, #2563eb 100%)" }}
+                style={{ width: "100%", background: "linear-gradient(135deg, #0284c7 0%, #2563eb 100%)", padding: "0.85rem", fontSize: "0.95rem" }}
               >
                 {loadingSection === "batch2" 
-                  ? "Processing Seat..." 
+                  ? "Signing in & Enrolling..." 
                   : userEnrollment 
                     ? "Already Registered Elsewhere" 
-                    : !user 
-                      ? "Sign In to Enroll in Batch 2" 
-                      : "Enroll in Batch 2"}
+                    : "Enroll in Batch 2"}
               </button>
             ) : (
               <div style={{ background: "rgba(245, 158, 11, 0.08)", border: "1px dashed rgba(245, 158, 11, 0.3)", borderRadius: "0.85rem", padding: "1rem", textAlign: "center" }}>
@@ -310,13 +268,11 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
                   onClick={() => handleEnrollClick("waitlist2")}
                   disabled={loadingSection === "waitlist2"}
                   className="btn-secondary"
-                  style={{ width: "100%", color: "#fcd34d", borderColor: "rgba(245, 158, 11, 0.4)" }}
+                  style={{ width: "100%", color: "#fcd34d", borderColor: "rgba(245, 158, 11, 0.4)", padding: "0.75rem" }}
                 >
                   {loadingSection === "waitlist2" 
                     ? "Joining Waitlist..." 
-                    : !user 
-                      ? "Sign In to Join Waitlist 2" 
-                      : "Join Waitlist 2"}
+                    : "Join Waitlist 2"}
                 </button>
               </div>
             )}
@@ -324,6 +280,26 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
         </div>
 
       </div>
+
+      {/* Already Enrolled? Log In Link Banner */}
+      {!user && (
+        <div style={{ textAlign: "center", marginTop: "1.75rem" }}>
+          <button
+            onClick={onLogin}
+            className="btn-secondary"
+            style={{
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              padding: "0.6rem 1.5rem",
+              borderRadius: "999px",
+              fontSize: "0.875rem",
+              color: "var(--accent)"
+            }}
+          >
+            <LogIn size={16} /> Already registered? Log in here to view your ticket & roster
+          </button>
+        </div>
+      )}
 
       {/* System Transparency Banner */}
       <div className="glass-card" style={{ marginTop: "2rem", padding: "1.25rem 1.5rem", display: "flex", alignItems: "center", gap: "1rem", background: "rgba(255, 255, 255, 0.02)" }}>

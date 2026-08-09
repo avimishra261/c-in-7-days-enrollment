@@ -99,8 +99,58 @@ export default function Home() {
     }
   }, []);
 
-  // Direct Google Sign-In Trigger
-  const handleGoogleLogin = async () => {
+  // Perform Seat Allocation
+  const performEnrollment = async (
+    targetUser: { uid: string; displayName: string; email: string },
+    section: "batch1" | "batch2" | "waitlist1" | "waitlist2"
+  ): Promise<{ success: boolean; message: string }> => {
+    const currentEnrollments = getLocalEnrollments();
+
+    if (currentEnrollments[targetUser.uid]) {
+      return {
+        success: false,
+        message: `Security Lock: You are already registered for ${currentEnrollments[targetUser.uid].section.toUpperCase()}.`,
+      };
+    }
+
+    const enrollmentData: UserEnrollment = {
+      userId: targetUser.uid,
+      userName: targetUser.displayName || targetUser.email.split("@")[0],
+      userEmail: targetUser.email,
+      section,
+      enrolledAt: new Date().toISOString(),
+    };
+
+    // Update Local Storage
+    const updatedMap = { ...currentEnrollments, [targetUser.uid]: enrollmentData };
+    setEnrollments(updatedMap);
+    setUserEnrollment(enrollmentData);
+    saveLocalEnrollmentMap(updatedMap);
+    recalculateCounts(updatedMap);
+
+    // Sync to Firestore Database (if online)
+    try {
+      await setDoc(doc(db, "enrollments", targetUser.uid), enrollmentData);
+    } catch (e) {
+      console.warn("Firestore synced to local store fallback.", e);
+    }
+
+    const sectionLabel = section === "batch1" 
+      ? "Batch 1 (Morning Slot)" 
+      : section === "batch2" 
+        ? "Batch 2 (Afternoon Slot)" 
+        : section === "waitlist1" 
+          ? "Waitlist 1" 
+          : "Waitlist 2";
+
+    return {
+      success: true,
+      message: `Successfully enrolled in ${sectionLabel}! Your seat is confirmed.`,
+    };
+  };
+
+  // Direct Google Sign-In Trigger with Optional Immediate Auto-Enrollment
+  const handleGoogleLogin = async (targetSection?: "batch1" | "batch2" | "waitlist1" | "waitlist2") => {
     try {
       const res = await signInWithPopup(auth, googleProvider);
       const email = res.user.email?.toLowerCase() || "";
@@ -122,6 +172,11 @@ export default function Home() {
 
       setUser(loggedUser);
       setPersistentSessionUser(loggedUser);
+
+      // Auto-enroll immediately if target section was clicked!
+      if (targetSection) {
+        await performEnrollment(loggedUser, targetSection);
+      }
     } catch (err: any) {
       console.warn("Google login popup error:", err);
       if (err.code === "auth/unauthorized-domain") {
@@ -159,8 +214,8 @@ export default function Home() {
   // Handle Student Enrollment Action
   const handleEnroll = async (section: "batch1" | "batch2" | "waitlist1" | "waitlist2"): Promise<{ success: boolean; message: string }> => {
     if (!user) {
-      handleGoogleLogin();
-      return { success: false, message: "Please sign in with your official @indoreinstitute.com Google account." };
+      await handleGoogleLogin(section);
+      return { success: true, message: "Authenticating & Enrolling..." };
     }
 
     const email = user.email?.toLowerCase() || "";
@@ -170,47 +225,7 @@ export default function Home() {
       return { success: false, message: "Security Lock: Only @indoreinstitute.com emails are allowed." };
     }
 
-    if (userEnrollment) {
-      return {
-        success: false,
-        message: `Security Lock: You are already registered for ${userEnrollment.section.toUpperCase()}.`,
-      };
-    }
-
-    const enrollmentData: UserEnrollment = {
-      userId: user.uid,
-      userName: user.displayName || user.email.split("@")[0],
-      userEmail: user.email,
-      section,
-      enrolledAt: new Date().toISOString(),
-    };
-
-    // Update Local Storage
-    const updatedMap = { ...enrollments, [user.uid]: enrollmentData };
-    setEnrollments(updatedMap);
-    setUserEnrollment(enrollmentData);
-    saveLocalEnrollmentMap(updatedMap);
-    recalculateCounts(updatedMap);
-
-    // Sync to Firestore Database (if online)
-    try {
-      await setDoc(doc(db, "enrollments", user.uid), enrollmentData);
-    } catch (e) {
-      console.warn("Firestore synced to local store fallback.", e);
-    }
-
-    const sectionLabel = section === "batch1" 
-      ? "Batch 1 (Morning Slot)" 
-      : section === "batch2" 
-        ? "Batch 2 (Afternoon Slot)" 
-        : section === "waitlist1" 
-          ? "Waitlist 1" 
-          : "Waitlist 2";
-
-    return {
-      success: true,
-      message: `Successfully enrolled in ${sectionLabel}! Your seat is confirmed.`,
-    };
+    return await performEnrollment(user, section);
   };
 
   // Handle Cancel Seat (Enrolled Portal)
@@ -277,7 +292,7 @@ export default function Home() {
             />
             <BatchCards
               user={user}
-              onLogin={handleGoogleLogin}
+              onLogin={() => handleGoogleLogin()}
               maxLimitPerBatch={config.maxLimitPerBatch}
               batch1Count={batch1Count}
               batch2Count={batch2Count}
@@ -297,7 +312,7 @@ export default function Home() {
         isOpen={isAccessDeniedOpen}
         rejectedEmail={rejectedEmail}
         onClose={() => setIsAccessDeniedOpen(false)}
-        onRetryGoogle={handleGoogleLogin}
+        onRetryGoogle={() => handleGoogleLogin()}
       />
 
       {/* Footer */}
