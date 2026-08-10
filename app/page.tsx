@@ -14,6 +14,7 @@ import {
   deleteDoc,
   collection,
   onSnapshot,
+  getDocs,
 } from "firebase/firestore";
 import {
   AppConfig,
@@ -82,7 +83,7 @@ export default function Home() {
     }
   }, []);
 
-  // Sync Real-time Firestore Enrollments across ALL phones & devices
+  // Sync Real-time Firestore Enrollments across ALL phones & devices (Firestore is Single Source of Truth)
   useEffect(() => {
     let unsub = () => {};
     try {
@@ -94,25 +95,24 @@ export default function Home() {
             liveData[docSnap.id] = docSnap.data() as UserEnrollment;
           });
 
-          // Fallback to local storage if Firestore snapshot is empty (for offline testing)
-          const localData = getLocalEnrollments();
-          const mergedData = { ...localData, ...liveData };
+          setEnrollments(liveData);
+          saveLocalEnrollmentMap(liveData);
+          recalculateCounts(liveData);
 
-          setEnrollments(mergedData);
-          saveLocalEnrollmentMap(mergedData);
-          recalculateCounts(mergedData);
-
-          if (user?.uid && mergedData[user.uid]) {
-            setUserEnrollment(mergedData[user.uid]);
-          } else if (user?.uid && !mergedData[user.uid]) {
+          if (user?.uid && liveData[user.uid]) {
+            setUserEnrollment(liveData[user.uid]);
+          } else {
             setUserEnrollment(null);
           }
         },
         (err) => {
-          console.warn("Firestore snapshot listener fallback:", err);
+          console.warn("Firestore snapshot listener fallback to local:", err);
           const localData = getLocalEnrollments();
           setEnrollments(localData);
           recalculateCounts(localData);
+          if (user?.uid && localData[user.uid]) {
+            setUserEnrollment(localData[user.uid]);
+          }
         }
       );
     } catch (e) {
@@ -138,7 +138,6 @@ export default function Home() {
             setUser(loggedUser);
             setPersistentSessionUser(loggedUser);
 
-            // Check if user is already enrolled
             const currentEnrollments = getLocalEnrollments();
             if (currentEnrollments[firebaseUser.uid]) {
               setUserEnrollment(currentEnrollments[firebaseUser.uid]);
@@ -156,7 +155,7 @@ export default function Home() {
     }
   }, []);
 
-  // Recalculate Seat Counts
+  // Recalculate Seat Counters
   const recalculateCounts = (data: Record<string, UserEnrollment>) => {
     let b1 = 0, b2 = 0, w1 = 0, w2 = 0;
     Object.values(data).forEach((item) => {
@@ -180,13 +179,6 @@ export default function Home() {
   }) => {
     if (!user) return;
 
-    const currentEnrollments = getLocalEnrollments();
-    if (currentEnrollments[user.uid]) {
-      setUserEnrollment(currentEnrollments[user.uid]);
-      setIsOnboardingOpen(false);
-      return;
-    }
-
     const enrollmentData: UserEnrollment = {
       userId: user.uid,
       userName: details.userName || user.displayName || user.email.split("@")[0],
@@ -198,23 +190,23 @@ export default function Home() {
       enrolledAt: new Date().toISOString(),
     };
 
-    // Update Local Storage
-    const updatedMap = { ...enrollments, ...currentEnrollments, [user.uid]: enrollmentData };
+    // Update state & local storage immediately
+    const updatedMap = { ...enrollments, [user.uid]: enrollmentData };
     setEnrollments(updatedMap);
     setUserEnrollment(enrollmentData);
     saveLocalEnrollmentMap(updatedMap);
     recalculateCounts(updatedMap);
 
-    // Save to Firestore Realtime Database
+    // Write to Firestore Realtime Database
     try {
       await setDoc(doc(db, "enrollments", user.uid), enrollmentData);
     } catch (e) {
-      console.warn("Firestore synced to local store fallback.", e);
+      console.warn("Firestore setDoc fallback:", e);
     }
 
     setIsOnboardingOpen(false);
 
-    // Trigger WhatsApp Redirect Celebration Modal!
+    // Open WhatsApp Redirect Celebration Modal!
     setWhatsAppRedirectSection(onboardingTargetSection);
     setIsWhatsAppModalOpen(true);
   };
@@ -244,9 +236,8 @@ export default function Home() {
       setPersistentSessionUser(loggedUser);
 
       // Check if student is ALREADY registered!
-      const currentEnrollments = { ...getLocalEnrollments(), ...enrollments };
-      if (currentEnrollments[res.user.uid]) {
-        setUserEnrollment(currentEnrollments[res.user.uid]);
+      if (enrollments[res.user.uid]) {
+        setUserEnrollment(enrollments[res.user.uid]);
         return;
       }
 
@@ -289,12 +280,11 @@ export default function Home() {
     }
 
     // Check if user is ALREADY enrolled
-    const currentEnrollments = { ...getLocalEnrollments(), ...enrollments };
-    if (currentEnrollments[user.uid]) {
-      setUserEnrollment(currentEnrollments[user.uid]);
+    if (enrollments[user.uid] || userEnrollment) {
+      setUserEnrollment(enrollments[user.uid] || userEnrollment);
       return {
         success: true,
-        message: `Welcome back! You are already registered for ${currentEnrollments[user.uid].section.toUpperCase()}.`,
+        message: `Welcome back! You are already registered for ${(enrollments[user.uid] || userEnrollment)?.section.toUpperCase()}.`,
       };
     }
 
@@ -316,7 +306,7 @@ export default function Home() {
     const promotedMap = autoPromoteWaitlist(updated, config.maxLimitPerBatch);
 
     setEnrollments(promotedMap);
-    setUserEnrollment(promotedMap[user.uid] || null);
+    setUserEnrollment(null);
     saveLocalEnrollmentMap(promotedMap);
     recalculateCounts(promotedMap);
 
@@ -361,7 +351,6 @@ export default function Home() {
 
   // Clear all data (Admin reset)
   const handleClearAllEnrollments = async () => {
-    const currentKeys = Object.keys(enrollments);
     setEnrollments({});
     setUserEnrollment(null);
     setBatch1Count(0);
@@ -370,10 +359,13 @@ export default function Home() {
     setWaitlist2Count(0);
     saveLocalEnrollmentMap({});
 
-    for (const key of currentKeys) {
-      try {
-        await deleteDoc(doc(db, "enrollments", key));
-      } catch (e) { console.warn(e); }
+    try {
+      const snap = await getDocs(collection(db, "enrollments"));
+      snap.forEach(async (d) => {
+        await deleteDoc(doc(db, "enrollments", d.id));
+      });
+    } catch (e) {
+      console.warn("Firestore clear docs error:", e);
     }
   };
 
