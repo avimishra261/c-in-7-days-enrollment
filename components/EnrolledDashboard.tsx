@@ -80,7 +80,7 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
   };
 
   return (
-    <div className="animate-fade-in" style={{ marginTop: "1.5rem" }}>
+    <div className="animate-fade-in" style={{ marginTop: "1rem" }}>
       
       {/* ================= DIGITAL REGISTRATION TICKET CARD ================= */}
       <div
@@ -88,15 +88,15 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
         style={{
           borderLeft: isWaitlist ? "6px solid var(--amber)" : "6px solid var(--emerald)",
           background: isWaitlist ? "rgba(245, 158, 11, 0.08)" : "rgba(16, 185, 129, 0.08)",
-          marginBottom: "2rem",
+          marginBottom: "1.75rem",
           position: "relative",
           overflow: "hidden"
         }}
       >
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "1.5rem" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "1.25rem" }}>
           
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.6rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.6rem", flexWrap: "wrap" }}>
               <span className={`badge ${isWaitlist ? "badge-amber" : "badge-emerald"}`} style={{ fontSize: "0.85rem", padding: "0.3rem 0.85rem" }}>
                 {isWaitlist ? `WAITLIST POSITION #${myWaitlistPosition}` : "OFFICIALLY ENROLLED"}
               </span>
@@ -105,29 +105,30 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
               </span>
             </div>
 
-            <h2 style={{ fontSize: "clamp(1.6rem, 3vw, 2.3rem)", color: "#ffffff", marginBottom: "0.4rem", fontWeight: 700 }}>
+            <h2 style={{ fontSize: "clamp(1.4rem, 3.5vw, 2.3rem)", color: "#ffffff", marginBottom: "0.4rem", fontWeight: 700 }}>
               {sectionTitles[userEnrollment.section] || userEnrollment.section}
             </h2>
 
-            <p style={{ fontSize: "0.95rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <UserCheck size={18} color="var(--accent)" /> Student Account: <strong style={{ color: "#ffffff" }}>{userEnrollment.userName}</strong> ({userEnrollment.userEmail})
+            <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+              <UserCheck size={18} color="var(--accent)" /> Student: <strong style={{ color: "#ffffff" }}>{userEnrollment.userName}</strong> ({userEnrollment.userEmail})
             </p>
 
-            <p style={{ fontSize: "0.85rem", color: "var(--text-dim)", marginTop: "0.4rem" }}>
-              Registration Time: {new Date(userEnrollment.enrolledAt).toLocaleString("en-IN")}
+            <p style={{ fontSize: "0.8rem", color: "var(--text-dim)", marginTop: "0.4rem" }}>
+              Registered: {new Date(userEnrollment.enrolledAt).toLocaleString("en-IN")}
             </p>
           </div>
 
-          <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.75rem" }}>
+          <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.75rem", width: "100%", maxWidth: "260px" }}>
             <div style={{
+              width: "100%",
               background: "rgba(0,0,0,0.4)",
               border: "1px solid rgba(255,255,255,0.12)",
               borderRadius: "0.85rem",
-              padding: "0.75rem 1.25rem",
+              padding: "0.75rem 1rem",
               textAlign: "center"
             }}>
               <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", textTransform: "uppercase" }}>Batch Capacity</div>
-              <div style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--accent)" }}>
+              <div style={{ fontSize: "1.15rem", fontWeight: 700, color: "var(--accent)" }}>
                 {!isWaitlist 
                   ? `${mySectionStudents.length} / ${maxLimitPerBatch} Enrolled`
                   : `Position #${myWaitlistPosition} of ${mySectionStudents.length} Waiting`}
@@ -137,7 +138,7 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
             <button
               onClick={() => setShowCancelConfirm(true)}
               className="btn-secondary"
-              style={{ color: "#fda4af", borderColor: "rgba(244,63,94,0.3)", padding: "0.55rem 1rem", fontSize: "0.85rem" }}
+              style={{ width: "100%", color: "#fda4af", borderColor: "rgba(244,63,94,0.3)", padding: "0.55rem 1rem", fontSize: "0.85rem" }}
             >
               <Trash2 size={15} /> Unenroll / Cancel Seat
             </button>
@@ -148,18 +149,18 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
         {/* Waitlist Position Status Alert */}
         {isWaitlist && (
           <div style={{
-            marginTop: "1.5rem",
-            padding: "1rem 1.25rem",
+            marginTop: "1.25rem",
+            padding: "0.85rem 1rem",
             background: "rgba(245, 158, 11, 0.15)",
             border: "1px dashed rgba(245, 158, 11, 0.5)",
             borderRadius: "0.85rem",
             display: "flex",
             alignItems: "center",
-            gap: "0.8rem",
+            gap: "0.75rem",
             color: "#fcd34d",
-            fontSize: "0.95rem"
+            fontSize: "0.9rem"
           }}>
-            <AlertCircle size={22} color="#f59e0b" />
+            <AlertCircle size={22} color="#f59e0b" style={{ flexShrink: 0 }} />
             <div>
               <strong style={{ color: "#ffffff" }}>Live Waitlist Position #{myWaitlistPosition}:</strong> You are next in line! When an enrolled student cancels their seat, your registration is automatically promoted to Batch 1/2.
             </div>
@@ -178,31 +179,32 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          padding: "1.5rem"
+          padding: "1.25rem"
         }}>
-          <div className="glass-card animate-fade-in" style={{ maxWidth: "420px", border: "1px solid rgba(244,63,94,0.4)" }}>
-            <h3 style={{ fontSize: "1.2rem", color: "#ffffff", marginBottom: "0.75rem" }}>
+          <div className="glass-card animate-fade-in" style={{ maxWidth: "420px", width: "100%", border: "1px solid rgba(244,63,94,0.4)" }}>
+            <h3 style={{ fontSize: "1.15rem", color: "#ffffff", marginBottom: "0.75rem" }}>
               Are you sure you want to unenroll?
             </h3>
-            <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", marginBottom: "1.5rem" }}>
+            <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1.5rem" }}>
               Cancelling your registration will permanently relinquish your seat. If there is a waitlist, the next student in line will automatically be assigned this seat.
             </p>
 
-            <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
+            <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end", flexWrap: "wrap" }}>
               <button
                 onClick={() => setShowCancelConfirm(false)}
                 className="btn-secondary"
                 disabled={cancelling}
+                style={{ flex: 1 }}
               >
-                Keep My Seat
+                Keep Seat
               </button>
               <button
                 onClick={handleCancelClick}
                 className="btn-primary"
-                style={{ background: "linear-gradient(135deg, #e11d48 0%, #be123c 100%)" }}
+                style={{ background: "linear-gradient(135deg, #e11d48 0%, #be123c 100%)", flex: 1 }}
                 disabled={cancelling}
               >
-                {cancelling ? "Cancelling..." : "Yes, Unenroll Me"}
+                {cancelling ? "Cancelling..." : "Unenroll Me"}
               </button>
             </div>
           </div>
@@ -210,7 +212,7 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
       )}
 
       {/* ================= TWO COLUMN LAYOUT: ANNOUNCEMENTS & TRANSPARENT ROSTER ================= */}
-      <div className="grid-2" style={{ gap: "2rem" }}>
+      <div className="grid-2" style={{ gap: "1.5rem" }}>
         
         {/* FACULTY ANNOUNCEMENTS */}
         <div className="glass-card">
@@ -232,10 +234,10 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
                     background: "rgba(0,0,0,0.3)",
                     border: "1px solid rgba(255,255,255,0.08)",
                     borderRadius: "0.85rem",
-                    padding: "1rem"
+                    padding: "0.85rem 1rem"
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem", flexWrap: "wrap", gap: "0.4rem" }}>
                     <h4 style={{ fontSize: "0.95rem", color: "var(--accent)" }}>{item.title}</h4>
                     <span style={{ fontSize: "0.75rem", color: "var(--text-dim)" }}>{item.date}</span>
                   </div>
@@ -267,7 +269,7 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
               onClick={() => setRosterTab("batch")}
               style={{
                 flex: 1,
-                padding: "0.45rem",
+                padding: "0.5rem 0.25rem",
                 borderRadius: "0.6rem",
                 border: "none",
                 background: rosterTab === "batch" ? "var(--primary)" : "transparent",
@@ -277,13 +279,13 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
                 cursor: "pointer"
               }}
             >
-              Enrolled Students ({confirmedStudents.length})
+              Enrolled ({confirmedStudents.length})
             </button>
             <button
               onClick={() => setRosterTab("waitlist")}
               style={{
                 flex: 1,
-                padding: "0.45rem",
+                padding: "0.5rem 0.25rem",
                 borderRadius: "0.6rem",
                 border: "none",
                 background: rosterTab === "waitlist" ? "var(--amber)" : "transparent",
@@ -293,14 +295,14 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
                 cursor: "pointer"
               }}
             >
-              Waitlist Queue ({waitlistedStudents.length})
+              Waitlist ({waitlistedStudents.length})
             </button>
           </div>
 
-          {/* Table Container */}
-          <div style={{ maxHeight: "320px", overflowY: "auto", borderRadius: "0.75rem", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.3)" }}>
+          {/* Touch-friendly Horizontal Scrolling Table Container */}
+          <div style={{ maxHeight: "320px", overflowY: "auto", overflowX: "auto", borderRadius: "0.75rem", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.3)" }}>
             {rosterTab === "batch" ? (
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.825rem", textAlign: "left" }}>
+              <table style={{ width: "100%", minWidth: "420px", borderCollapse: "collapse", fontSize: "0.825rem", textAlign: "left" }}>
                 <thead>
                   <tr style={{ background: "rgba(255,255,255,0.05)", borderBottom: "1px solid rgba(255,255,255,0.08)", color: "var(--text-muted)" }}>
                     <th style={{ padding: "0.6rem 0.8rem" }}>#</th>
@@ -347,7 +349,7 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
                 </tbody>
               </table>
             ) : (
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.825rem", textAlign: "left" }}>
+              <table style={{ width: "100%", minWidth: "420px", borderCollapse: "collapse", fontSize: "0.825rem", textAlign: "left" }}>
                 <thead>
                   <tr style={{ background: "rgba(245, 158, 11, 0.1)", borderBottom: "1px solid rgba(255,255,255,0.08)", color: "#fcd34d" }}>
                     <th style={{ padding: "0.6rem 0.8rem" }}>Waitlist #</th>

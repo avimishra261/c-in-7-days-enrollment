@@ -39,6 +39,7 @@ html, body {
   font-family: var(--font-sans);
   overflow-x: hidden;
   line-height: 1.6;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Background Ambient Glow */
@@ -292,4 +293,42 @@ h1, h2, h3, h4 {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ================= MOBILE RESPONSIVE OPTIMIZATION ================= */
+@media (max-width: 640px) {
+  .container {
+    padding: 1.25rem 0.85rem;
+  }
+
+  .glass-card {
+    padding: 1.25rem 1rem;
+    border-radius: 1rem;
+  }
+
+  .grid-2, .grid-3 {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .btn-primary, .btn-secondary {
+    padding: 0.85rem 1.15rem;
+    font-size: 0.925rem;
+    width: 100%;
+    justify-content: center;
+  }
+
+  h1 {
+    font-size: 1.75rem !important;
+    line-height: 1.25 !important;
+  }
+
+  h2 {
+    font-size: 1.3rem !important;
+  }
+
+  /* Table horizontal scroll wrapper for small mobile screens */
+  table {
+    min-width: 450px;
+  }
 }
