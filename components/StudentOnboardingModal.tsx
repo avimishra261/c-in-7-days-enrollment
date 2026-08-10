@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { UserEnrollment } from "../lib/enrollmentStore";
-import { UserCheck, Phone, BookOpen, Target, Sparkles, Check, ArrowRight, ShieldCheck } from "lucide-react";
+import { UserCheck, Phone, BookOpen, Target, Sparkles, Check, ArrowRight, ShieldCheck, X } from "lucide-react";
 
 interface StudentOnboardingModalProps {
   isOpen: boolean;
@@ -84,6 +84,7 @@ export const StudentOnboardingModal: React.FC<StudentOnboardingModalProps> = ({
       });
     } catch (err: any) {
       setError(err.message || "Failed to finalize registration.");
+    } finally {
       setSubmitting(false);
     }
   };
@@ -106,12 +107,21 @@ export const StudentOnboardingModal: React.FC<StudentOnboardingModalProps> = ({
         maxHeight: "92vh",
         overflowY: "auto",
         border: "1px solid rgba(56, 189, 248, 0.4)",
-        boxShadow: "0 20px 50px rgba(0,0,0,0.8)"
+        boxShadow: "0 20px 50px rgba(0,0,0,0.8)",
+        position: "relative"
       }}>
+
+        <button
+          onClick={onClose}
+          className="btn-secondary"
+          style={{ position: "absolute", top: "1rem", right: "1rem", padding: "0.35rem", borderRadius: "50%" }}
+        >
+          <X size={16} />
+        </button>
         
         {/* Header */}
-        <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "1rem", marginBottom: "1.25rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.4rem" }}>
+        <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "1rem", marginBottom: "1.25rem", paddingRight: "2rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.4rem", flexWrap: "wrap" }}>
             <span className="badge badge-emerald" style={{ fontSize: "0.75rem" }}>Step 2 of 2: Registration Details</span>
             <span className="badge badge-primary" style={{ fontSize: "0.75rem" }}>{sectionLabel}</span>
           </div>

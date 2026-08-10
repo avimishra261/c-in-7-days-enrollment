@@ -101,8 +101,6 @@ export default function Home() {
 
           if (user?.uid && liveData[user.uid]) {
             setUserEnrollment(liveData[user.uid]);
-          } else {
-            setUserEnrollment(null);
           }
         },
         (err) => {
@@ -190,25 +188,22 @@ export default function Home() {
       enrolledAt: new Date().toISOString(),
     };
 
-    // Update state & local storage immediately
+    // Update state & local storage immediately for INSTANT UI response
     const updatedMap = { ...enrollments, [user.uid]: enrollmentData };
     setEnrollments(updatedMap);
     setUserEnrollment(enrollmentData);
     saveLocalEnrollmentMap(updatedMap);
     recalculateCounts(updatedMap);
 
-    // Write to Firestore Realtime Database
-    try {
-      await setDoc(doc(db, "enrollments", user.uid), enrollmentData);
-    } catch (e) {
-      console.warn("Firestore setDoc fallback:", e);
-    }
-
+    // INSTANTLY CLOSE ONBOARDING MODAL & OPEN WHATSAPP CELEBRATION MODAL!
     setIsOnboardingOpen(false);
-
-    // Open WhatsApp Redirect Celebration Modal!
     setWhatsAppRedirectSection(onboardingTargetSection);
     setIsWhatsAppModalOpen(true);
+
+    // Write to Firestore Realtime Database asynchronously without blocking UI!
+    setDoc(doc(db, "enrollments", user.uid), enrollmentData).catch((e) => {
+      console.warn("Firestore setDoc background write fallback:", e);
+    });
   };
 
   // Direct Google Sign-In Trigger
@@ -310,16 +305,12 @@ export default function Home() {
     saveLocalEnrollmentMap(promotedMap);
     recalculateCounts(promotedMap);
 
-    // Delete from Firestore Real-Time Database
-    try {
-      await deleteDoc(doc(db, "enrollments", user.uid));
-    } catch (e) { console.warn(e); }
+    // Delete from Firestore Real-Time Database asynchronously
+    deleteDoc(doc(db, "enrollments", user.uid)).catch((e) => console.warn(e));
 
     // Sync any promoted waitlist student to Firestore
     for (const item of Object.values(promotedMap)) {
-      try {
-        await setDoc(doc(db, "enrollments", item.userId), item);
-      } catch (e) { console.warn(e); }
+      setDoc(doc(db, "enrollments", item.userId), item).catch((e) => console.warn(e));
     }
   };
 
@@ -361,8 +352,8 @@ export default function Home() {
 
     try {
       const snap = await getDocs(collection(db, "enrollments"));
-      snap.forEach(async (d) => {
-        await deleteDoc(doc(db, "enrollments", d.id));
+      snap.forEach((d) => {
+        deleteDoc(doc(db, "enrollments", d.id)).catch((e) => console.warn(e));
       });
     } catch (e) {
       console.warn("Firestore clear docs error:", e);
