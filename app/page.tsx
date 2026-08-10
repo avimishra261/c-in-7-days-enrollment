@@ -27,6 +27,11 @@ import {
   autoPromoteWaitlist,
   UserEnrollment,
   Announcement,
+  BATCH_1_WHATSAPP_LINK,
+  BATCH_2_WHATSAPP_LINK,
+  WAITLIST_1_WHATSAPP_LINK,
+  WAITLIST_2_WHATSAPP_LINK,
+  COMMUNITY_WHATSAPP_LINK,
 } from "../lib/enrollmentStore";
 import { Navbar } from "../components/Navbar";
 import { Hero } from "../components/Hero";
@@ -373,11 +378,11 @@ export default function Home() {
   };
 
   const getTargetWhatsappLink = (sec: string) => {
-    if (sec === "batch1") return config.batch1WhatsappLink || config.communityWhatsappLink;
-    if (sec === "batch2") return config.batch2WhatsappLink || config.communityWhatsappLink;
-    if (sec === "waitlist1") return config.waitlist1WhatsappLink || config.communityWhatsappLink;
-    if (sec === "waitlist2") return config.waitlist2WhatsappLink || config.communityWhatsappLink;
-    return config.communityWhatsappLink;
+    if (sec === "batch1") return config.batch1WhatsappLink || BATCH_1_WHATSAPP_LINK;
+    if (sec === "batch2") return config.batch2WhatsappLink || BATCH_2_WHATSAPP_LINK;
+    if (sec === "waitlist1") return config.waitlist1WhatsappLink || WAITLIST_1_WHATSAPP_LINK;
+    if (sec === "waitlist2") return config.waitlist2WhatsappLink || WAITLIST_2_WHATSAPP_LINK;
+    return config.communityWhatsappLink || COMMUNITY_WHATSAPP_LINK;
   };
 
   if (!mounted) return null;
@@ -453,16 +458,14 @@ export default function Home() {
       />
 
       {/* Pre-Enrollment Student Onboarding Form Modal */}
-      {user && (
-        <StudentOnboardingModal
-          isOpen={isOnboardingOpen}
-          onClose={() => setIsOnboardingOpen(false)}
-          targetSection={onboardingTargetSection}
-          initialName={user.displayName || ""}
-          initialEmail={user.email || ""}
-          onSubmitDetails={handleFinalizeRegistration}
-        />
-      )}
+      <StudentOnboardingModal
+        isOpen={isOnboardingOpen}
+        onClose={() => setIsOnboardingOpen(false)}
+        targetSection={onboardingTargetSection}
+        initialName={user?.displayName || ""}
+        initialEmail={user?.email || ""}
+        onSubmitDetails={handleFinalizeRegistration}
+      />
 
       {/* WhatsApp Group Redirect Celebration Modal */}
       <WhatsAppRedirectModal

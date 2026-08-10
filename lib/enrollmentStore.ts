@@ -42,7 +42,12 @@ export interface UserAccount {
   createdAt: string;
 }
 
-const DEFAULT_COMMUNITY_LINK = "https://chat.whatsapp.com/LcftSfX9baA9tqH4ftmajw";
+// 4 Exact WhatsApp Group Links
+export const BATCH_1_WHATSAPP_LINK = "https://chat.whatsapp.com/KQGuFSxx3lAD7ONoJHAjOv";
+export const BATCH_2_WHATSAPP_LINK = "https://chat.whatsapp.com/GcbDVfxJ8Zm0KL1mnwswJH";
+export const WAITLIST_1_WHATSAPP_LINK = "https://chat.whatsapp.com/Lg8WrWrUzRwAhkGgDrnjFD";
+export const WAITLIST_2_WHATSAPP_LINK = "https://chat.whatsapp.com/I2hiOGf0zhTHnI56IEfNBS";
+export const COMMUNITY_WHATSAPP_LINK = "https://chat.whatsapp.com/LcftSfX9baA9tqH4ftmajw";
 
 // Initial Default Settings & Announcements
 export const DEFAULT_CONFIG: AppConfig = {
@@ -50,16 +55,16 @@ export const DEFAULT_CONFIG: AppConfig = {
   endDate: "2026-08-17T23:59",
   maxLimitPerBatch: 4, // Initial test limit requested in Idea.txt
   registrationOpen: true,
-  communityWhatsappLink: DEFAULT_COMMUNITY_LINK,
-  batch1WhatsappLink: DEFAULT_COMMUNITY_LINK,
-  batch2WhatsappLink: DEFAULT_COMMUNITY_LINK,
-  waitlist1WhatsappLink: DEFAULT_COMMUNITY_LINK,
-  waitlist2WhatsappLink: DEFAULT_COMMUNITY_LINK,
+  communityWhatsappLink: COMMUNITY_WHATSAPP_LINK,
+  batch1WhatsappLink: BATCH_1_WHATSAPP_LINK,
+  batch2WhatsappLink: BATCH_2_WHATSAPP_LINK,
+  waitlist1WhatsappLink: WAITLIST_1_WHATSAPP_LINK,
+  waitlist2WhatsappLink: WAITLIST_2_WHATSAPP_LINK,
   announcements: [
     {
       id: "ann_1",
       title: "Welcome to C in 7 Days Bootcamp!",
-      content: "All registered students please make sure you join your respective WhatsApp group and install GCC compiler / Code::Blocks before Day 1.",
+      content: "All registered students please make sure you join your respective batch WhatsApp group and install GCC compiler / Code::Blocks before Day 1.",
       date: new Date().toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }),
       postedBy: "Mr. Ashish Singh",
     },

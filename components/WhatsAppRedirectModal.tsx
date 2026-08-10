@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { CheckCircle, ExternalLink, MessageCircle, Sparkles, X, ArrowRight } from "lucide-react";
+import { CheckCircle, ExternalLink, MessageCircle, Sparkles, X, ShieldAlert } from "lucide-react";
 
 interface WhatsAppRedirectModalProps {
   isOpen: boolean;
@@ -20,7 +20,12 @@ export const WhatsAppRedirectModal: React.FC<WhatsAppRedirectModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  const isWaitlist = section.startsWith("waitlist");
+  const sectionTitles: Record<string, string> = {
+    batch1: "Batch 1 (Morning Slot) WhatsApp Group",
+    batch2: "Batch 2 (Afternoon Slot) WhatsApp Group",
+    waitlist1: "Batch 1 Waiting List WhatsApp Group",
+    waitlist2: "Batch 2 Waiting List WhatsApp Group",
+  };
 
   const handleJoinClick = () => {
     window.open(whatsappLink, "_blank");
@@ -41,10 +46,10 @@ export const WhatsAppRedirectModal: React.FC<WhatsAppRedirectModalProps> = ({
     }}>
       <div className="glass-card animate-fade-in" style={{
         width: "100%",
-        maxWidth: "480px",
+        maxWidth: "500px",
         textAlign: "center",
-        border: "1px solid rgba(37, 211, 102, 0.4)",
-        boxShadow: "0 20px 50px rgba(37, 211, 102, 0.2)",
+        border: "1px solid rgba(37, 211, 102, 0.5)",
+        boxShadow: "0 20px 50px rgba(37, 211, 102, 0.25)",
         position: "relative"
       }}>
         <button
@@ -74,16 +79,19 @@ export const WhatsAppRedirectModal: React.FC<WhatsAppRedirectModalProps> = ({
           🎉 Congratulations, {studentName.split(" ")[0]}!
         </h2>
 
-        <p style={{ fontSize: "0.95rem", color: "var(--text-muted)", marginBottom: "1.5rem" }}>
-          Your seat in <strong style={{ color: "#ffffff" }}>{section.toUpperCase()}</strong> has been successfully allocated!
+        <p style={{ fontSize: "0.95rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>
+          Your seat registration for <strong style={{ color: "#ffffff" }}>{section.toUpperCase()}</strong> is confirmed!
         </p>
 
-        {/* Action WhatsApp Button */}
-        <div style={{ background: "rgba(37, 211, 102, 0.08)", border: "1px solid rgba(37, 211, 102, 0.3)", borderRadius: "1rem", padding: "1.25rem", marginBottom: "1.5rem" }}>
-          <h3 style={{ fontSize: "1rem", color: "#6ee7b7", marginBottom: "0.5rem" }}>
-            Final Step: Join Your Official WhatsApp Group
+        {/* Action WhatsApp Button Container */}
+        <div style={{ background: "rgba(37, 211, 102, 0.08)", border: "1px solid rgba(37, 211, 102, 0.3)", borderRadius: "1rem", padding: "1.25rem", marginBottom: "1.25rem" }}>
+          <h3 style={{ fontSize: "1.05rem", color: "#6ee7b7", marginBottom: "0.4rem" }}>
+            Join Your Assigned Batch Group
           </h3>
-          <p style={{ fontSize: "0.825rem", color: "var(--text-muted)", marginBottom: "1rem" }}>
+          <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "#ffffff", marginBottom: "0.75rem" }}>
+            {sectionTitles[section] || section}
+          </p>
+          <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "1.25rem" }}>
             Classroom lab numbers, timing announcements, and daily problem sets by Prof. Ashish Singh will be shared in this group.
           </p>
 
@@ -98,8 +106,13 @@ export const WhatsAppRedirectModal: React.FC<WhatsAppRedirectModalProps> = ({
               padding: "0.85rem"
             }}
           >
-            <MessageCircle size={20} /> Join WhatsApp Group Now <ExternalLink size={16} />
+            <MessageCircle size={20} /> Join {section.toUpperCase()} Group Now <ExternalLink size={16} />
           </button>
+        </div>
+
+        <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem", marginBottom: "1.25rem" }}>
+          <ShieldAlert size={14} color="var(--accent)" />
+          Strict Security: You are authorized to join your assigned batch group only.
         </div>
 
         <button
