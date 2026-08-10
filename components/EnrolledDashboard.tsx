@@ -16,6 +16,10 @@ import {
   ArrowRight,
   Trash2,
   ListOrdered,
+  MessageCircle,
+  ExternalLink,
+  Phone,
+  BookOpen,
 } from "lucide-react";
 
 interface EnrolledDashboardProps {
@@ -24,6 +28,7 @@ interface EnrolledDashboardProps {
   announcements: Announcement[];
   onCancelEnrollment: () => Promise<void>;
   maxLimitPerBatch: number;
+  whatsappLink?: string;
 }
 
 export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
@@ -32,6 +37,7 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
   announcements,
   onCancelEnrollment,
   maxLimitPerBatch,
+  whatsappLink = "https://chat.whatsapp.com/LcftSfX9baA9tqH4ftmajw",
 }) => {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -65,6 +71,13 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
     batch2: "Batch 2 (Afternoon Slot)",
     waitlist1: "Waitlist 1 (Morning Batch)",
     waitlist2: "Waitlist 2 (Afternoon Batch)",
+  };
+
+  const goalLabels: Record<string, string> = {
+    placement: "Product / Service Placements",
+    gate: "GATE Exam & Higher Technical Studies",
+    dual: "Placement + GATE Dual Track",
+    core_c: "Core C Programming Mastery",
   };
 
   const handleCancelClick = async () => {
@@ -103,6 +116,11 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
               <span style={{ fontSize: "0.8rem", color: "var(--text-dim)" }}>
                 Ref: {userEnrollment.userId.slice(-6).toUpperCase()}
               </span>
+              {userEnrollment.collegeSection && (
+                <span className="badge badge-primary" style={{ fontSize: "0.75rem", padding: "0.2rem 0.6rem" }}>
+                  Section: {userEnrollment.collegeSection}
+                </span>
+              )}
             </div>
 
             <h2 style={{ fontSize: "clamp(1.4rem, 3.5vw, 2.3rem)", color: "#ffffff", marginBottom: "0.4rem", fontWeight: 700 }}>
@@ -113,18 +131,49 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
               <UserCheck size={18} color="var(--accent)" /> Student: <strong style={{ color: "#ffffff" }}>{userEnrollment.userName}</strong> ({userEnrollment.userEmail})
             </p>
 
+            {userEnrollment.phone && (
+              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginTop: "0.3rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <Phone size={15} color="#25D366" /> WhatsApp: <strong style={{ color: "#ffffff" }}>{userEnrollment.phone}</strong>
+              </p>
+            )}
+
+            {userEnrollment.careerGoal && (
+              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginTop: "0.3rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <BookOpen size={15} color="var(--accent)" /> Career Goal: <strong style={{ color: "var(--accent)" }}>{goalLabels[userEnrollment.careerGoal] || userEnrollment.careerGoal}</strong>
+              </p>
+            )}
+
             <p style={{ fontSize: "0.8rem", color: "var(--text-dim)", marginTop: "0.4rem" }}>
               Registered: {new Date(userEnrollment.enrolledAt).toLocaleString("en-IN")}
             </p>
           </div>
 
-          <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.75rem", width: "100%", maxWidth: "260px" }}>
+          <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.75rem", width: "100%", maxWidth: "280px" }}>
+            
+            {/* Join WhatsApp Group Button */}
+            <a
+              href={whatsappLink}
+              target="_blank"
+              rel="noreferrer"
+              className="btn-primary"
+              style={{
+                width: "100%",
+                background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
+                boxShadow: "0 4px 15px rgba(37, 211, 102, 0.4)",
+                padding: "0.7rem 1rem",
+                fontSize: "0.9rem",
+                textDecoration: "none"
+              }}
+            >
+              <MessageCircle size={18} /> Join WhatsApp Group <ExternalLink size={14} />
+            </a>
+
             <div style={{
               width: "100%",
               background: "rgba(0,0,0,0.4)",
               border: "1px solid rgba(255,255,255,0.12)",
               borderRadius: "0.85rem",
-              padding: "0.75rem 1rem",
+              padding: "0.65rem 1rem",
               textAlign: "center"
             }}>
               <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", textTransform: "uppercase" }}>Batch Capacity</div>
@@ -302,11 +351,12 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
           {/* Touch-friendly Horizontal Scrolling Table Container */}
           <div style={{ maxHeight: "320px", overflowY: "auto", overflowX: "auto", borderRadius: "0.75rem", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.3)" }}>
             {rosterTab === "batch" ? (
-              <table style={{ width: "100%", minWidth: "420px", borderCollapse: "collapse", fontSize: "0.825rem", textAlign: "left" }}>
+              <table style={{ width: "100%", minWidth: "480px", borderCollapse: "collapse", fontSize: "0.825rem", textAlign: "left" }}>
                 <thead>
                   <tr style={{ background: "rgba(255,255,255,0.05)", borderBottom: "1px solid rgba(255,255,255,0.08)", color: "var(--text-muted)" }}>
                     <th style={{ padding: "0.6rem 0.8rem" }}>#</th>
                     <th style={{ padding: "0.6rem 0.8rem" }}>Student Name</th>
+                    <th style={{ padding: "0.6rem 0.8rem" }}>College Sec</th>
                     <th style={{ padding: "0.6rem 0.8rem" }}>Section</th>
                     <th style={{ padding: "0.6rem 0.8rem" }}>Joined At</th>
                   </tr>
@@ -314,7 +364,7 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
                 <tbody>
                   {confirmedStudents.length === 0 ? (
                     <tr>
-                      <td colSpan={4} style={{ padding: "1.5rem", textAlign: "center", color: "var(--text-dim)" }}>
+                      <td colSpan={5} style={{ padding: "1.5rem", textAlign: "center", color: "var(--text-dim)" }}>
                         No enrolled students yet.
                       </td>
                     </tr>
@@ -336,7 +386,10 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
                           <td style={{ padding: "0.6rem 0.8rem", color: isCurrentUser ? "#ffffff" : "var(--text-main)" }}>
                             {st.userName} {isCurrentUser && <span style={{ color: "#34d399", fontSize: "0.75rem" }}>(You)</span>}
                           </td>
-                          <td style={{ padding: "0.6rem 0.8rem", color: "var(--accent)", textTransform: "uppercase" }}>
+                          <td style={{ padding: "0.6rem 0.8rem", color: "var(--accent)" }}>
+                            {st.collegeSection || "—"}
+                          </td>
+                          <td style={{ padding: "0.6rem 0.8rem", color: "var(--primary)", textTransform: "uppercase" }}>
                             {st.section}
                           </td>
                           <td style={{ padding: "0.6rem 0.8rem", color: "var(--text-dim)", fontSize: "0.75rem" }}>
@@ -349,11 +402,12 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
                 </tbody>
               </table>
             ) : (
-              <table style={{ width: "100%", minWidth: "420px", borderCollapse: "collapse", fontSize: "0.825rem", textAlign: "left" }}>
+              <table style={{ width: "100%", minWidth: "480px", borderCollapse: "collapse", fontSize: "0.825rem", textAlign: "left" }}>
                 <thead>
                   <tr style={{ background: "rgba(245, 158, 11, 0.1)", borderBottom: "1px solid rgba(255,255,255,0.08)", color: "#fcd34d" }}>
                     <th style={{ padding: "0.6rem 0.8rem" }}>Waitlist #</th>
                     <th style={{ padding: "0.6rem 0.8rem" }}>Student Name</th>
+                    <th style={{ padding: "0.6rem 0.8rem" }}>College Sec</th>
                     <th style={{ padding: "0.6rem 0.8rem" }}>Target Batch</th>
                     <th style={{ padding: "0.6rem 0.8rem" }}>Timestamp</th>
                   </tr>
@@ -361,7 +415,7 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
                 <tbody>
                   {waitlistedStudents.length === 0 ? (
                     <tr>
-                      <td colSpan={4} style={{ padding: "1.5rem", textAlign: "center", color: "var(--text-dim)" }}>
+                      <td colSpan={5} style={{ padding: "1.5rem", textAlign: "center", color: "var(--text-dim)" }}>
                         Waitlist is currently empty. All seats available!
                       </td>
                     </tr>
@@ -382,6 +436,9 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
                           </td>
                           <td style={{ padding: "0.6rem 0.8rem", color: isCurrentUser ? "#ffffff" : "var(--text-main)" }}>
                             {st.userName} {isCurrentUser && <span style={{ color: "#fcd34d", fontSize: "0.75rem" }}>(You)</span>}
+                          </td>
+                          <td style={{ padding: "0.6rem 0.8rem", color: "var(--accent)" }}>
+                            {st.collegeSection || "—"}
                           </td>
                           <td style={{ padding: "0.6rem 0.8rem", color: "var(--amber)", textTransform: "uppercase" }}>
                             {st.section}

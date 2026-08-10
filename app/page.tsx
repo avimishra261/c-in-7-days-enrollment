@@ -33,6 +33,8 @@ import { Hero } from "../components/Hero";
 import { BatchCards } from "../components/BatchCards";
 import { EnrolledDashboard } from "../components/EnrolledDashboard";
 import { AccessDeniedModal } from "../components/AccessDeniedModal";
+import { StudentOnboardingModal } from "../components/StudentOnboardingModal";
+import { WhatsAppRedirectModal } from "../components/WhatsAppRedirectModal";
 import { AdminModal } from "../components/AdminModal";
 import { Footer } from "../components/Footer";
 
@@ -41,7 +43,14 @@ export default function Home() {
   const [user, setUser] = useState<User | any | null>(null);
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
-  
+
+  // Student Onboarding & WhatsApp Redirect Modals State
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const [onboardingTargetSection, setOnboardingTargetSection] = useState<"batch1" | "batch2" | "waitlist1" | "waitlist2">("batch1");
+
+  const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
+  const [whatsAppRedirectSection, setWhatsAppRedirectSection] = useState<string>("batch1");
+
   // Access Denied Modal State
   const [isAccessDeniedOpen, setIsAccessDeniedOpen] = useState(false);
   const [rejectedEmail, setRejectedEmail] = useState("");
@@ -157,60 +166,55 @@ export default function Home() {
     setWaitlist2Count(w2);
   };
 
-  // Perform Seat Allocation in Real-Time Database
-  const performEnrollment = async (
-    targetUser: { uid: string; displayName: string; email: string },
-    section: "batch1" | "batch2" | "waitlist1" | "waitlist2"
-  ): Promise<{ success: boolean; message: string }> => {
-    const currentEnrollments = getLocalEnrollments();
+  // Perform Final Registration with Student Onboarding Details
+  const handleFinalizeRegistration = async (details: {
+    userName: string;
+    phone: string;
+    collegeSection: string;
+    careerGoal: string;
+  }) => {
+    if (!user) return;
 
-    // IF ALREADY ENROLLED IN ANY SECTION -> LOCK & LOAD ENROLLED DASHBOARD!
-    if (currentEnrollments[targetUser.uid]) {
-      const existing = currentEnrollments[targetUser.uid];
-      setUserEnrollment(existing);
-      return {
-        success: true,
-        message: `Welcome back! You are registered for ${existing.section.toUpperCase()}. Here is your ticket and live student roster.`,
-      };
+    const currentEnrollments = getLocalEnrollments();
+    if (currentEnrollments[user.uid]) {
+      setUserEnrollment(currentEnrollments[user.uid]);
+      setIsOnboardingOpen(false);
+      return;
     }
 
     const enrollmentData: UserEnrollment = {
-      userId: targetUser.uid,
-      userName: targetUser.displayName || targetUser.email.split("@")[0],
-      userEmail: targetUser.email,
-      section,
+      userId: user.uid,
+      userName: details.userName || user.displayName || user.email.split("@")[0],
+      userEmail: user.email,
+      phone: details.phone,
+      collegeSection: details.collegeSection,
+      careerGoal: details.careerGoal,
+      section: onboardingTargetSection,
       enrolledAt: new Date().toISOString(),
     };
 
-    // Update Local Storage immediately for local responsiveness
-    const updatedMap = { ...enrollments, ...currentEnrollments, [targetUser.uid]: enrollmentData };
+    // Update Local Storage
+    const updatedMap = { ...enrollments, ...currentEnrollments, [user.uid]: enrollmentData };
     setEnrollments(updatedMap);
     setUserEnrollment(enrollmentData);
     saveLocalEnrollmentMap(updatedMap);
     recalculateCounts(updatedMap);
 
-    // Save to Firestore Realtime Database (Notifies all connected devices)
+    // Save to Firestore Realtime Database
     try {
-      await setDoc(doc(db, "enrollments", targetUser.uid), enrollmentData);
+      await setDoc(doc(db, "enrollments", user.uid), enrollmentData);
     } catch (e) {
       console.warn("Firestore synced to local store fallback.", e);
     }
 
-    const sectionLabel = section === "batch1" 
-      ? "Batch 1 (Morning Slot)" 
-      : section === "batch2" 
-        ? "Batch 2 (Afternoon Slot)" 
-        : section === "waitlist1" 
-          ? "Waitlist 1" 
-          : "Waitlist 2";
+    setIsOnboardingOpen(false);
 
-    return {
-      success: true,
-      message: `Successfully enrolled in ${sectionLabel}! Your seat is confirmed.`,
-    };
+    // Trigger WhatsApp Redirect Celebration Modal!
+    setWhatsAppRedirectSection(onboardingTargetSection);
+    setIsWhatsAppModalOpen(true);
   };
 
-  // Direct Google Sign-In Trigger with Automatic Enrollment / Existing Roster Loading
+  // Direct Google Sign-In Trigger
   const handleGoogleLogin = async (targetSection?: "batch1" | "batch2" | "waitlist1" | "waitlist2") => {
     try {
       const res = await signInWithPopup(auth, googleProvider);
@@ -234,16 +238,17 @@ export default function Home() {
       setUser(loggedUser);
       setPersistentSessionUser(loggedUser);
 
-      // Check if student is ALREADY registered in any section!
+      // Check if student is ALREADY registered!
       const currentEnrollments = { ...getLocalEnrollments(), ...enrollments };
       if (currentEnrollments[res.user.uid]) {
         setUserEnrollment(currentEnrollments[res.user.uid]);
         return;
       }
 
-      // If NOT enrolled yet and targetSection was clicked, auto-enroll now!
+      // If NOT enrolled yet and targetSection was clicked, open Onboarding Modal!
       if (targetSection) {
-        await performEnrollment(loggedUser, targetSection);
+        setOnboardingTargetSection(targetSection);
+        setIsOnboardingOpen(true);
       }
     } catch (err: any) {
       console.warn("Google login popup error:", err);
@@ -278,7 +283,21 @@ export default function Home() {
       return { success: false, message: "Security Lock: Only @indoreinstitute.com emails are allowed." };
     }
 
-    return await performEnrollment(user, section);
+    // Check if user is ALREADY enrolled
+    const currentEnrollments = { ...getLocalEnrollments(), ...enrollments };
+    if (currentEnrollments[user.uid]) {
+      setUserEnrollment(currentEnrollments[user.uid]);
+      return {
+        success: true,
+        message: `Welcome back! You are already registered for ${currentEnrollments[user.uid].section.toUpperCase()}.`,
+      };
+    }
+
+    // Open Student Onboarding Modal to collect details
+    setOnboardingTargetSection(section);
+    setIsOnboardingOpen(true);
+
+    return { success: true, message: "Please complete your registration profile." };
   };
 
   // Handle Cancel Seat (Enrolled Portal)
@@ -353,6 +372,14 @@ export default function Home() {
     }
   };
 
+  const getTargetWhatsappLink = (sec: string) => {
+    if (sec === "batch1") return config.batch1WhatsappLink || config.communityWhatsappLink;
+    if (sec === "batch2") return config.batch2WhatsappLink || config.communityWhatsappLink;
+    if (sec === "waitlist1") return config.waitlist1WhatsappLink || config.communityWhatsappLink;
+    if (sec === "waitlist2") return config.waitlist2WhatsappLink || config.communityWhatsappLink;
+    return config.communityWhatsappLink;
+  };
+
   if (!mounted) return null;
 
   return (
@@ -381,6 +408,7 @@ export default function Home() {
               announcements={config.announcements || []}
               onCancelEnrollment={handleCancelEnrollment}
               maxLimitPerBatch={config.maxLimitPerBatch}
+              whatsappLink={getTargetWhatsappLink(userEnrollment.section)}
             />
             {/* Secondary Hero details below */}
             <div style={{ opacity: 0.8, marginTop: "3rem" }}>
@@ -422,6 +450,27 @@ export default function Home() {
         rejectedEmail={rejectedEmail}
         onClose={() => setIsAccessDeniedOpen(false)}
         onRetryGoogle={() => handleGoogleLogin()}
+      />
+
+      {/* Pre-Enrollment Student Onboarding Form Modal */}
+      {user && (
+        <StudentOnboardingModal
+          isOpen={isOnboardingOpen}
+          onClose={() => setIsOnboardingOpen(false)}
+          targetSection={onboardingTargetSection}
+          initialName={user.displayName || ""}
+          initialEmail={user.email || ""}
+          onSubmitDetails={handleFinalizeRegistration}
+        />
+      )}
+
+      {/* WhatsApp Group Redirect Celebration Modal */}
+      <WhatsAppRedirectModal
+        isOpen={isWhatsAppModalOpen}
+        onClose={() => setIsWhatsAppModalOpen(false)}
+        section={whatsAppRedirectSection}
+        whatsappLink={getTargetWhatsappLink(whatsAppRedirectSection)}
+        studentName={userEnrollment?.userName || user?.displayName || "Student"}
       />
 
       {/* Faculty Control & Master Database Roster Panel */}

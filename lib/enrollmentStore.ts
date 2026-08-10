@@ -16,12 +16,20 @@ export interface AppConfig {
   maxLimitPerBatch: number;
   registrationOpen: boolean;
   announcements: Announcement[];
+  communityWhatsappLink: string;
+  batch1WhatsappLink: string;
+  batch2WhatsappLink: string;
+  waitlist1WhatsappLink: string;
+  waitlist2WhatsappLink: string;
 }
 
 export interface UserEnrollment {
   userId: string;
   userName: string;
   userEmail: string;
+  phone?: string;
+  collegeSection?: string;
+  careerGoal?: string;
   section: "batch1" | "batch2" | "waitlist1" | "waitlist2";
   enrolledAt: string;
 }
@@ -34,17 +42,24 @@ export interface UserAccount {
   createdAt: string;
 }
 
+const DEFAULT_COMMUNITY_LINK = "https://chat.whatsapp.com/LcftSfX9baA9tqH4ftmajw";
+
 // Initial Default Settings & Announcements
 export const DEFAULT_CONFIG: AppConfig = {
   startDate: "2026-08-10T09:00",
   endDate: "2026-08-17T23:59",
   maxLimitPerBatch: 4, // Initial test limit requested in Idea.txt
   registrationOpen: true,
+  communityWhatsappLink: DEFAULT_COMMUNITY_LINK,
+  batch1WhatsappLink: DEFAULT_COMMUNITY_LINK,
+  batch2WhatsappLink: DEFAULT_COMMUNITY_LINK,
+  waitlist1WhatsappLink: DEFAULT_COMMUNITY_LINK,
+  waitlist2WhatsappLink: DEFAULT_COMMUNITY_LINK,
   announcements: [
     {
       id: "ann_1",
       title: "Welcome to C in 7 Days Bootcamp!",
-      content: "All registered students please make sure you have GCC compiler or Code::Blocks installed on your laptops before Day 1. Class timings for Batch 1 and Batch 2 will be shared shortly.",
+      content: "All registered students please make sure you join your respective WhatsApp group and install GCC compiler / Code::Blocks before Day 1.",
       date: new Date().toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }),
       postedBy: "Mr. Ashish Singh",
     },
@@ -127,7 +142,7 @@ export function registerUserAccount(name: string, email: string, password: strin
     uid,
     name: cleanName,
     email: cleanEmail,
-    passwordHash: btoa(password), // simple encoder for local storage demo/test mode
+    passwordHash: btoa(password),
     createdAt: new Date().toISOString(),
   };
 
