@@ -101,6 +101,8 @@ export default function Home() {
 
           if (user?.uid && liveData[user.uid]) {
             setUserEnrollment(liveData[user.uid]);
+          } else {
+            setUserEnrollment(null);
           }
         },
         (err) => {
@@ -188,22 +190,24 @@ export default function Home() {
       enrolledAt: new Date().toISOString(),
     };
 
-    // Update state & local storage immediately for INSTANT UI response
+    // Update state & local storage immediately for instant local UI responsiveness
     const updatedMap = { ...enrollments, [user.uid]: enrollmentData };
     setEnrollments(updatedMap);
     setUserEnrollment(enrollmentData);
     saveLocalEnrollmentMap(updatedMap);
     recalculateCounts(updatedMap);
 
-    // INSTANTLY CLOSE ONBOARDING MODAL & OPEN WHATSAPP CELEBRATION MODAL!
+    // Save to Firestore Realtime Database (broadcasts to all connected devices)
+    try {
+      await setDoc(doc(db, "enrollments", user.uid), enrollmentData);
+    } catch (e) {
+      console.warn("Firestore setDoc error fallback to local storage:", e);
+    }
+
+    // CLOSE ONBOARDING MODAL & OPEN WHATSAPP CELEBRATION MODAL!
     setIsOnboardingOpen(false);
     setWhatsAppRedirectSection(onboardingTargetSection);
     setIsWhatsAppModalOpen(true);
-
-    // Write to Firestore Realtime Database asynchronously without blocking UI!
-    setDoc(doc(db, "enrollments", user.uid), enrollmentData).catch((e) => {
-      console.warn("Firestore setDoc background write fallback:", e);
-    });
   };
 
   // Direct Google Sign-In Trigger
@@ -305,12 +309,16 @@ export default function Home() {
     saveLocalEnrollmentMap(promotedMap);
     recalculateCounts(promotedMap);
 
-    // Delete from Firestore Real-Time Database asynchronously
-    deleteDoc(doc(db, "enrollments", user.uid)).catch((e) => console.warn(e));
+    // Delete from Firestore Real-Time Database
+    try {
+      await deleteDoc(doc(db, "enrollments", user.uid));
+    } catch (e) { console.warn(e); }
 
     // Sync any promoted waitlist student to Firestore
     for (const item of Object.values(promotedMap)) {
-      setDoc(doc(db, "enrollments", item.userId), item).catch((e) => console.warn(e));
+      try {
+        await setDoc(doc(db, "enrollments", item.userId), item);
+      } catch (e) { console.warn(e); }
     }
   };
 
@@ -352,8 +360,10 @@ export default function Home() {
 
     try {
       const snap = await getDocs(collection(db, "enrollments"));
-      snap.forEach((d) => {
-        deleteDoc(doc(db, "enrollments", d.id)).catch((e) => console.warn(e));
+      snap.forEach(async (d) => {
+        try {
+          await deleteDoc(doc(db, "enrollments", d.id));
+        } catch (e) { console.warn(e); }
       });
     } catch (e) {
       console.warn("Firestore clear docs error:", e);
