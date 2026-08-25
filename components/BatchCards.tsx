@@ -35,13 +35,51 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
   const [loadingSection, setLoadingSection] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ type: "success" | "error" | "info"; message: string } | null>(null);
 
-  // Batch 1 Stats
-  const batch1Full = batch1Count >= maxLimitPerBatch;
-  const batch1Percent = Math.min(100, Math.round((batch1Count / maxLimitPerBatch) * 100));
+  const wlMax = 60;
 
-  // Batch 2 Stats
-  const batch2Full = batch2Count >= maxLimitPerBatch;
+  // Batch 1 Railway Logic
+  const batch1Percent = Math.min(100, Math.round((batch1Count / maxLimitPerBatch) * 100));
+  let b1Text = "";
+  let b1Color = "";
+  let b1TargetSection: "batch1" | "waitlist1" | "none" = "none";
+  let b1Disabled = false;
+
+  if (batch1Count < maxLimitPerBatch) {
+    b1Text = `AVL - ${maxLimitPerBatch - batch1Count}`;
+    b1Color = "#10b981"; // Emerald
+    b1TargetSection = "batch1";
+  } else if (waitlist1Count < wlMax) {
+    b1Text = `WL - ${waitlist1Count + 1}`;
+    b1Color = "#ef4444"; // Rose/Red
+    b1TargetSection = "waitlist1";
+  } else {
+    b1Text = "REGRET";
+    b1Color = "#6b7280"; // Gray
+    b1TargetSection = "none";
+    b1Disabled = true;
+  }
+
+  // Batch 2 Railway Logic
   const batch2Percent = Math.min(100, Math.round((batch2Count / maxLimitPerBatch) * 100));
+  let b2Text = "";
+  let b2Color = "";
+  let b2TargetSection: "batch2" | "waitlist2" | "none" = "none";
+  let b2Disabled = false;
+
+  if (batch2Count < maxLimitPerBatch) {
+    b2Text = `AVL - ${maxLimitPerBatch - batch2Count}`;
+    b2Color = "#10b981"; // Emerald
+    b2TargetSection = "batch2";
+  } else if (waitlist2Count < wlMax) {
+    b2Text = `WL - ${waitlist2Count + 1}`;
+    b2Color = "#ef4444"; // Rose/Red
+    b2TargetSection = "waitlist2";
+  } else {
+    b2Text = "REGRET";
+    b2Color = "#6b7280"; // Gray
+    b2TargetSection = "none";
+    b2Disabled = true;
+  }
 
   const handleEnrollClick = async (section: "batch1" | "batch2" | "waitlist1" | "waitlist2") => {
     if (!registrationOpen) {
@@ -134,8 +172,8 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
                 <span className="badge badge-primary" style={{ marginBottom: "0.5rem" }}>Batch 01</span>
                 <h2 style={{ fontSize: "1.5rem", color: "#ffffff" }}>Morning Slot</h2>
               </div>
-              <span className={`badge ${batch1Full ? "badge-rose" : "badge-emerald"}`}>
-                {batch1Full ? "Batch Full" : `${maxLimitPerBatch - batch1Count} Seats Left`}
+              <span className="badge" style={{ backgroundColor: b1TargetSection === "batch1" ? "rgba(16, 185, 129, 0.15)" : b1TargetSection === "waitlist1" ? "rgba(239, 68, 68, 0.15)" : "rgba(107, 114, 128, 0.15)", color: b1Color, borderColor: b1TargetSection === "batch1" ? "rgba(16, 185, 129, 0.3)" : b1TargetSection === "waitlist1" ? "rgba(239, 68, 68, 0.3)" : "rgba(107, 114, 128, 0.3)" }}>
+                Status: {b1Text}
               </span>
             </div>
 
@@ -165,38 +203,40 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
 
           {/* Action Button for Batch 1 */}
           <div>
-            {!batch1Full ? (
-              <button
-                onClick={() => handleEnrollClick("batch1")}
-                disabled={loadingSection === "batch1"}
-                className="btn-primary"
-                style={{ width: "100%", padding: "0.85rem", fontSize: "0.95rem" }}
-              >
-                {loadingSection === "batch1" 
-                  ? "Signing in & Enrolling..." 
-                  : userEnrollment 
-                    ? "Already Registered Elsewhere" 
-                    : "Enroll in Batch 1"}
-              </button>
-            ) : (
-              <div style={{ background: "rgba(245, 158, 11, 0.08)", border: "1px dashed rgba(245, 158, 11, 0.3)", borderRadius: "0.85rem", padding: "1rem", textAlign: "center" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: "#fcd34d", fontWeight: 600, fontSize: "0.9rem", marginBottom: "0.5rem" }}>
-                  <AlertTriangle size={18} /> Batch 1 is Full ({batch1Count}/{maxLimitPerBatch})
-                </div>
-                <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "0.75rem" }}>
-                  Waitlist 1 is now Active ({waitlist1Count} students waiting)
-                </p>
-                <button
-                  onClick={() => handleEnrollClick("waitlist1")}
-                  disabled={loadingSection === "waitlist1"}
-                  className="btn-secondary"
-                  style={{ width: "100%", color: "#fcd34d", borderColor: "rgba(245, 158, 11, 0.4)", padding: "0.75rem" }}
-                >
-                  {loadingSection === "waitlist1" 
-                    ? "Joining Waitlist..." 
-                    : "Join Waitlist 1"}
-                </button>
-              </div>
+            <button
+              onClick={() => {
+                if (b1TargetSection !== "none" && !b1Disabled) handleEnrollClick(b1TargetSection);
+              }}
+              disabled={b1Disabled || loadingSection === b1TargetSection || !!userEnrollment}
+              style={{
+                width: "100%",
+                padding: "0.85rem",
+                fontSize: "1rem",
+                backgroundColor: b1Color,
+                color: "#ffffff",
+                border: "none",
+                borderRadius: "0.5rem",
+                fontWeight: 700,
+                cursor: (b1Disabled || !!userEnrollment) ? "not-allowed" : "pointer",
+                opacity: (b1Disabled || !!userEnrollment) ? 0.6 : 1,
+                transition: "all 0.2s ease"
+              }}
+            >
+              {loadingSection === b1TargetSection
+                ? "Processing..."
+                : userEnrollment
+                ? "Already Registered"
+                : `Book Seat ( ${b1Text} )`}
+            </button>
+            {b1TargetSection === "waitlist1" && !userEnrollment && (
+              <p style={{ fontSize: "0.75rem", color: "#ef4444", textAlign: "center", marginTop: "0.5rem" }}>
+                *You will be added to the Waiting List.
+              </p>
+            )}
+            {b1TargetSection === "none" && (
+               <p style={{ fontSize: "0.75rem", color: "#6b7280", textAlign: "center", marginTop: "0.5rem" }}>
+                *No seats available in Main or Waitlist.
+              </p>
             )}
           </div>
         </div>
@@ -212,8 +252,8 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
                 </span>
                 <h2 style={{ fontSize: "1.5rem", color: "#ffffff" }}>Afternoon Slot</h2>
               </div>
-              <span className={`badge ${batch2Full ? "badge-rose" : "badge-emerald"}`}>
-                {batch2Full ? "Batch Full" : `${maxLimitPerBatch - batch2Count} Seats Left`}
+              <span className="badge" style={{ backgroundColor: b2TargetSection === "batch2" ? "rgba(16, 185, 129, 0.15)" : b2TargetSection === "waitlist2" ? "rgba(239, 68, 68, 0.15)" : "rgba(107, 114, 128, 0.15)", color: b2Color, borderColor: b2TargetSection === "batch2" ? "rgba(16, 185, 129, 0.3)" : b2TargetSection === "waitlist2" ? "rgba(239, 68, 68, 0.3)" : "rgba(107, 114, 128, 0.3)" }}>
+                Status: {b2Text}
               </span>
             </div>
 
@@ -243,38 +283,40 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
 
           {/* Action Button for Batch 2 */}
           <div>
-            {!batch2Full ? (
-              <button
-                onClick={() => handleEnrollClick("batch2")}
-                disabled={loadingSection === "batch2"}
-                className="btn-primary"
-                style={{ width: "100%", background: "linear-gradient(135deg, #0284c7 0%, #2563eb 100%)", padding: "0.85rem", fontSize: "0.95rem" }}
-              >
-                {loadingSection === "batch2" 
-                  ? "Signing in & Enrolling..." 
-                  : userEnrollment 
-                    ? "Already Registered Elsewhere" 
-                    : "Enroll in Batch 2"}
-              </button>
-            ) : (
-              <div style={{ background: "rgba(245, 158, 11, 0.08)", border: "1px dashed rgba(245, 158, 11, 0.3)", borderRadius: "0.85rem", padding: "1rem", textAlign: "center" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", color: "#fcd34d", fontWeight: 600, fontSize: "0.9rem", marginBottom: "0.5rem" }}>
-                  <AlertTriangle size={18} /> Batch 2 is Full ({batch2Count}/{maxLimitPerBatch})
-                </div>
-                <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "0.75rem" }}>
-                  Waitlist 2 is now Active ({waitlist2Count} students waiting)
-                </p>
-                <button
-                  onClick={() => handleEnrollClick("waitlist2")}
-                  disabled={loadingSection === "waitlist2"}
-                  className="btn-secondary"
-                  style={{ width: "100%", color: "#fcd34d", borderColor: "rgba(245, 158, 11, 0.4)", padding: "0.75rem" }}
-                >
-                  {loadingSection === "waitlist2" 
-                    ? "Joining Waitlist..." 
-                    : "Join Waitlist 2"}
-                </button>
-              </div>
+            <button
+              onClick={() => {
+                if (b2TargetSection !== "none" && !b2Disabled) handleEnrollClick(b2TargetSection);
+              }}
+              disabled={b2Disabled || loadingSection === b2TargetSection || !!userEnrollment}
+              style={{
+                width: "100%",
+                padding: "0.85rem",
+                fontSize: "1rem",
+                backgroundColor: b2Color,
+                color: "#ffffff",
+                border: "none",
+                borderRadius: "0.5rem",
+                fontWeight: 700,
+                cursor: (b2Disabled || !!userEnrollment) ? "not-allowed" : "pointer",
+                opacity: (b2Disabled || !!userEnrollment) ? 0.6 : 1,
+                transition: "all 0.2s ease"
+              }}
+            >
+              {loadingSection === b2TargetSection
+                ? "Processing..."
+                : userEnrollment
+                ? "Already Registered"
+                : `Book Seat ( ${b2Text} )`}
+            </button>
+            {b2TargetSection === "waitlist2" && !userEnrollment && (
+              <p style={{ fontSize: "0.75rem", color: "#ef4444", textAlign: "center", marginTop: "0.5rem" }}>
+                *You will be added to the Waiting List.
+              </p>
+            )}
+            {b2TargetSection === "none" && (
+               <p style={{ fontSize: "0.75rem", color: "#6b7280", textAlign: "center", marginTop: "0.5rem" }}>
+                *No seats available in Main or Waitlist.
+              </p>
             )}
           </div>
         </div>

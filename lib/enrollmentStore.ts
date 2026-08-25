@@ -64,7 +64,7 @@ export const DEFAULT_CONFIG: AppConfig = {
     {
       id: "ann_1",
       title: "Welcome to C in 7 Days Bootcamp!",
-      content: "All registered students please make sure you join your respective batch WhatsApp group and install GCC compiler / Code::Blocks before Day 1.",
+      content: "All registered students please make sure you join your respective batch WhatsApp group. Let's start this amazing coding journey together and build some great projects! 🚀",
       date: new Date().toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }),
       postedBy: "Mr. Ashish Singh",
     },
