@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { AppConfig, UserEnrollment } from "../lib/enrollmentStore";
-import { X, Lock, Save, Key, Calendar, Users, Check, RefreshCw, MessageCircle } from "lucide-react";
+import { X, Lock, Save, Key, Calendar, Users, Check, RefreshCw, MessageCircle, Download } from "lucide-react";
 
 interface AdminModalProps {
   isOpen: boolean;
@@ -83,6 +83,33 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     gate: "GATE / Higher Studies",
     dual: "Placement + GATE",
     core_c: "Core C Mastery",
+  };
+
+  const handleDownloadCSV = () => {
+    if (enrollmentsList.length === 0) return;
+
+    const headers = ["Student Name", "Email", "WhatsApp Phone", "College Section", "Career Goal", "Allocated Batch", "Timestamp"];
+    
+    const rows = enrollmentsList.map(item => [
+      `"${item.userName || ""}"`,
+      `"${item.userEmail || ""}"`,
+      `"${item.phone || ""}"`,
+      `"${item.collegeSection || ""}"`,
+      `"${goalLabels[item.careerGoal || ""] || item.careerGoal || ""}"`,
+      `"${item.section.toUpperCase()}"`,
+      `"${new Date(item.enrolledAt).toLocaleString("en-IN")}"`
+    ]);
+
+    const csvContent = [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Enrollments_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -357,13 +384,22 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   <Users size={18} color="var(--accent)" /> Student Database ({enrollmentsList.length} total)
                 </h3>
                 {enrollmentsList.length > 0 && (
-                  <button
-                    onClick={onClearAllEnrollments}
-                    className="btn-secondary"
-                    style={{ fontSize: "0.75rem", padding: "0.3rem 0.6rem", color: "#fda4af", borderColor: "rgba(244,63,94,0.3)" }}
-                  >
-                    Reset All Test Data
-                  </button>
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <button
+                      onClick={handleDownloadCSV}
+                      className="btn-secondary"
+                      style={{ fontSize: "0.75rem", padding: "0.3rem 0.6rem", color: "#6ee7b7", borderColor: "rgba(110,231,183,0.3)", display: "flex", alignItems: "center", gap: "0.3rem" }}
+                    >
+                      <Download size={14} /> Export CSV
+                    </button>
+                    <button
+                      onClick={onClearAllEnrollments}
+                      className="btn-secondary"
+                      style={{ fontSize: "0.75rem", padding: "0.3rem 0.6rem", color: "#fda4af", borderColor: "rgba(244,63,94,0.3)" }}
+                    >
+                      Reset All Test Data
+                    </button>
+                  </div>
                 )}
               </div>
 
