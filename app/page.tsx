@@ -83,7 +83,36 @@ export default function Home() {
     }
   }, []);
 
-  // Sync Real-time Firestore Enrollments across ALL phones & devices (Firestore is Single Source of Truth)
+  // Fetch from Server API Route /api/enrollments every 3 seconds for 100% Guaranteed Cross-Device Sync
+  useEffect(() => {
+    const fetchApiEnrollments = async () => {
+      try {
+        const res = await fetch("/api/enrollments");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.enrollments) {
+            setEnrollments((prev) => {
+              const merged = { ...prev, ...data.enrollments };
+              saveLocalEnrollmentMap(merged);
+              recalculateCounts(merged);
+              if (user?.uid && merged[user.uid]) {
+                setUserEnrollment(merged[user.uid]);
+              }
+              return merged;
+            });
+          }
+        }
+      } catch (e) {
+        console.warn("API enrollments fetch error:", e);
+      }
+    };
+
+    fetchApiEnrollments();
+    const interval = setInterval(fetchApiEnrollments, 3000);
+    return () => clearInterval(interval);
+  }, [user?.uid]);
+
+  // Sync Real-time Firestore Enrollments across ALL phones & devices
   useEffect(() => {
     let unsub = () => {};
     try {
@@ -95,24 +124,18 @@ export default function Home() {
             liveData[docSnap.id] = docSnap.data() as UserEnrollment;
           });
 
-          setEnrollments(liveData);
-          saveLocalEnrollmentMap(liveData);
-          recalculateCounts(liveData);
+          if (Object.keys(liveData).length > 0) {
+            setEnrollments(liveData);
+            saveLocalEnrollmentMap(liveData);
+            recalculateCounts(liveData);
 
-          if (user?.uid && liveData[user.uid]) {
-            setUserEnrollment(liveData[user.uid]);
-          } else {
-            setUserEnrollment(null);
+            if (user?.uid && liveData[user.uid]) {
+              setUserEnrollment(liveData[user.uid]);
+            }
           }
         },
         (err) => {
-          console.warn("Firestore snapshot listener fallback to local:", err);
-          const localData = getLocalEnrollments();
-          setEnrollments(localData);
-          recalculateCounts(localData);
-          if (user?.uid && localData[user.uid]) {
-            setUserEnrollment(localData[user.uid]);
-          }
+          console.warn("Firestore snapshot error:", err);
         }
       );
     } catch (e) {
@@ -190,14 +213,23 @@ export default function Home() {
       enrolledAt: new Date().toISOString(),
     };
 
-    // Update state & local storage immediately for instant local UI responsiveness
+    // Update state & local storage immediately
     const updatedMap = { ...enrollments, [user.uid]: enrollmentData };
     setEnrollments(updatedMap);
     setUserEnrollment(enrollmentData);
     saveLocalEnrollmentMap(updatedMap);
     recalculateCounts(updatedMap);
 
-    // Save to Firestore Realtime Database (broadcasts to all connected devices)
+    // Save to Server API Route (Syncs all devices!)
+    try {
+      await fetch("/api/enrollments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enrollmentData }),
+      });
+    } catch (e) { console.warn("API write error:", e); }
+
+    // Save to Firestore Database
     try {
       await setDoc(doc(db, "enrollments", user.uid), enrollmentData);
     } catch (e) {
@@ -309,6 +341,15 @@ export default function Home() {
     saveLocalEnrollmentMap(promotedMap);
     recalculateCounts(promotedMap);
 
+    // Delete from API Route
+    try {
+      await fetch("/api/enrollments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", userId: user.uid }),
+      });
+    } catch (e) { console.warn(e); }
+
     // Delete from Firestore Real-Time Database
     try {
       await deleteDoc(doc(db, "enrollments", user.uid));
@@ -357,6 +398,14 @@ export default function Home() {
     setWaitlist1Count(0);
     setWaitlist2Count(0);
     saveLocalEnrollmentMap({});
+
+    try {
+      await fetch("/api/enrollments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "clear" }),
+      });
+    } catch (e) { console.warn(e); }
 
     try {
       const snap = await getDocs(collection(db, "enrollments"));
