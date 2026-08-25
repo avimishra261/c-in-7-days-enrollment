@@ -85,12 +85,27 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     core_c: "Core C Mastery",
   };
 
-  const handleDownloadCSV = () => {
-    if (enrollmentsList.length === 0) return;
+  const handleDownloadCSV = (batchFilter?: "batch1" | "batch2") => {
+    let filteredList = enrollmentsList;
+    let fileName = `Enrollments_${new Date().toISOString().split('T')[0]}.csv`;
+
+    if (batchFilter === "batch1") {
+      filteredList = enrollmentsList.filter(i => i.section === "batch1" || i.section === "waitlist1");
+      fileName = `Batch_1_Enrollments_${new Date().toISOString().split('T')[0]}.csv`;
+    } else if (batchFilter === "batch2") {
+      filteredList = enrollmentsList.filter(i => i.section === "batch2" || i.section === "waitlist2");
+      fileName = `Batch_2_Enrollments_${new Date().toISOString().split('T')[0]}.csv`;
+    }
+
+    if (filteredList.length === 0) {
+      setSuccessMessage(`No students enrolled in ${batchFilter || "any batch"} yet!`);
+      setTimeout(() => setSuccessMessage(""), 3000);
+      return;
+    }
 
     const headers = ["Student Name", "Email", "WhatsApp Phone", "College Section", "Career Goal", "Allocated Batch", "Timestamp"];
     
-    const rows = enrollmentsList.map(item => [
+    const rows = filteredList.map(item => [
       `"${item.userName || ""}"`,
       `"${item.userEmail || ""}"`,
       `"${item.phone || ""}"`,
@@ -106,7 +121,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `Enrollments_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute("download", fileName);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -384,20 +399,34 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                   <Users size={18} color="var(--accent)" /> Student Database ({enrollmentsList.length} total)
                 </h3>
                 {enrollmentsList.length > 0 && (
-                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                     <button
-                      onClick={handleDownloadCSV}
+                      onClick={() => handleDownloadCSV()}
                       className="btn-secondary"
                       style={{ fontSize: "0.75rem", padding: "0.3rem 0.6rem", color: "#6ee7b7", borderColor: "rgba(110,231,183,0.3)", display: "flex", alignItems: "center", gap: "0.3rem" }}
                     >
-                      <Download size={14} /> Export CSV
+                      <Download size={14} /> All
+                    </button>
+                    <button
+                      onClick={() => handleDownloadCSV("batch1")}
+                      className="btn-secondary"
+                      style={{ fontSize: "0.75rem", padding: "0.3rem 0.6rem", color: "#7dd3fc", borderColor: "rgba(56,189,248,0.3)", display: "flex", alignItems: "center", gap: "0.3rem" }}
+                    >
+                      <Download size={14} /> Batch 1
+                    </button>
+                    <button
+                      onClick={() => handleDownloadCSV("batch2")}
+                      className="btn-secondary"
+                      style={{ fontSize: "0.75rem", padding: "0.3rem 0.6rem", color: "#c084fc", borderColor: "rgba(192,132,252,0.3)", display: "flex", alignItems: "center", gap: "0.3rem" }}
+                    >
+                      <Download size={14} /> Batch 2
                     </button>
                     <button
                       onClick={onClearAllEnrollments}
                       className="btn-secondary"
                       style={{ fontSize: "0.75rem", padding: "0.3rem 0.6rem", color: "#fda4af", borderColor: "rgba(244,63,94,0.3)" }}
                     >
-                      Reset All Test Data
+                      Reset All
                     </button>
                   </div>
                 )}
