@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 // Server-side in-memory & cloud sync fallback cache for all connected devices
-let memoryEnrollmentStore: Record<string, any> = {};
+let memoryEnrollmentStore: Record<string, unknown> = {};
 
 export async function GET() {
   return NextResponse.json({
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true, enrollments: memoryEnrollmentStore });
-  } catch (e: any) {
-    return NextResponse.json({ success: false, error: e.message }, { status: 500 });
+  } catch (e: unknown) {
+    return NextResponse.json({ success: false, error: (e as Error).message }, { status: 500 });
   }
 }

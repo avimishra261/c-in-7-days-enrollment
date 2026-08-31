@@ -29,7 +29,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenFacultyPortal }) => {
               </span>
             </div>
             <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
-              "C in 7 Days" Technical Workshop Series | Supervised by Mr. Ashish Singh
+              &quot;C in 7 Days&quot; Technical Workshop Series | Supervised by Mr. Ashish Singh
             </p>
           </div>
 

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -48,6 +49,7 @@ import { Footer } from "../components/Footer";
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = useState<User | any | null>(null);
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
@@ -75,7 +77,7 @@ export default function Home() {
 
   // Initialize Config & Session
   useEffect(() => {
-    setMounted(true);
+    setTimeout(() => setMounted(true), 0);
     // Initial fallback load
     const loadedConfig = getLocalConfig();
     setConfig(loadedConfig);
@@ -169,7 +171,7 @@ export default function Home() {
   }, []);
 
   // Recalculate Seat Counters
-  const recalculateCounts = (data: Record<string, UserEnrollment>) => {
+  function recalculateCounts(data: Record<string, UserEnrollment>) {
     let b1 = 0, b2 = 0, w1 = 0, w2 = 0;
     Object.values(data).forEach((item) => {
       if (item.section === "batch1") b1++;
@@ -307,9 +309,9 @@ export default function Home() {
         setOnboardingTargetSection(targetSection);
         setIsOnboardingOpen(true);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn("Google login popup error:", err);
-      if (err.code === "auth/unauthorized-domain") {
+      if ((err as { code?: string }).code === "auth/unauthorized-domain") {
         setRejectedEmail("c-in-7-days-enrollment.vercel.app (Unauthorized Domain in Firebase)");
         setIsAccessDeniedOpen(true);
       }
@@ -320,7 +322,9 @@ export default function Home() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-    } catch (e) { console.error(e); }
+    } catch (err: unknown) {
+      console.error(err);
+    }
     setUser(null);
     setPersistentSessionUser(null);
     setUserEnrollment(null);

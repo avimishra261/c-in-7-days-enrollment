@@ -33,7 +33,7 @@ export const Hero: React.FC<HeroProps> = ({ startDate, endDate }) => {
       {/* Main Headline */}
       <h1 style={{ fontSize: "clamp(2.2rem, 5vw, 3.8rem)", fontWeight: 800, lineHeight: 1.15, marginBottom: "1.25rem" }}>
         Level Up Your Coding Logic with <br />
-        <span className="gradient-text">"C in 7 Days"</span>
+        <span className="gradient-text">&quot;C in 7 Days&quot;</span>
       </h1>
 
       {/* Subtitle */}

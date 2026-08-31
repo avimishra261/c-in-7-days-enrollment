@@ -111,8 +111,8 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
       } else {
         setFeedback({ type: "error", message: res.message });
       }
-    } catch (err: any) {
-      setFeedback({ type: "error", message: err.message || "Enrollment failed. Please try again." });
+    } catch (err: unknown) {
+      setFeedback({ type: "error", message: (err as Error).message || "Enrollment failed. Please try again." });
     } finally {
       setLoadingSection(null);
     }

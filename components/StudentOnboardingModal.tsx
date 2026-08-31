@@ -77,8 +77,8 @@ export const StudentOnboardingModal: React.FC<StudentOnboardingModalProps> = ({
         collegeSection: finalSection,
         careerGoal,
       });
-    } catch (err: any) {
-      setError(err.message || "Failed to finalize registration.");
+    } catch (err: unknown) {
+      setError((err as Error).message || "System error. Please try again.");
     } finally {
       setSubmitting(false);
     }
