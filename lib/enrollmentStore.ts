@@ -199,8 +199,9 @@ export function setPersistentSessionUser(user: { uid: string; displayName: strin
 export function autoPromoteWaitlist(
   enrollmentsMap: Record<string, UserEnrollment>,
   maxLimitPerBatch: number
-): Record<string, UserEnrollment> {
+): { updatedMap: Record<string, UserEnrollment>, promotedUsers: UserEnrollment[] } {
   const updated = { ...enrollmentsMap };
+  const promotedUsers: UserEnrollment[] = [];
 
   // Calculate current counts
   let batch1Count = 0;
@@ -212,36 +213,42 @@ export function autoPromoteWaitlist(
   });
 
   // Promote Waitlist 1 -> Batch 1 if space opens up
-  if (batch1Count < maxLimitPerBatch) {
-    const waitlist1Students = Object.values(updated)
-      .filter((item) => item.section === "waitlist1")
-      .sort((a, b) => new Date(a.enrolledAt).getTime() - new Date(b.enrolledAt).getTime());
+  let w1Index = 0;
+  const waitlist1Students = Object.values(updated)
+    .filter((item) => item.section === "waitlist1")
+    .sort((a, b) => new Date(a.enrolledAt).getTime() - new Date(b.enrolledAt).getTime());
 
-    if (waitlist1Students.length > 0) {
-      const firstInWaitlist = waitlist1Students[0];
-      updated[firstInWaitlist.userId] = {
-        ...firstInWaitlist,
-        section: "batch1",
-      };
-      console.log(`[Auto-Promoted] ${firstInWaitlist.userName} from Waitlist 1 to Batch 1`);
-    }
+  while (batch1Count < maxLimitPerBatch && w1Index < waitlist1Students.length) {
+    const studentToPromote = waitlist1Students[w1Index];
+    const promotedUser = {
+      ...studentToPromote,
+      section: "batch1" as const,
+    };
+    updated[studentToPromote.userId] = promotedUser;
+    promotedUsers.push(promotedUser);
+    console.log(`[Auto-Promoted] ${studentToPromote.userName} from Waitlist 1 to Batch 1`);
+    batch1Count++;
+    w1Index++;
   }
 
   // Promote Waitlist 2 -> Batch 2 if space opens up
-  if (batch2Count < maxLimitPerBatch) {
-    const waitlist2Students = Object.values(updated)
-      .filter((item) => item.section === "waitlist2")
-      .sort((a, b) => new Date(a.enrolledAt).getTime() - new Date(b.enrolledAt).getTime());
+  let w2Index = 0;
+  const waitlist2Students = Object.values(updated)
+    .filter((item) => item.section === "waitlist2")
+    .sort((a, b) => new Date(a.enrolledAt).getTime() - new Date(b.enrolledAt).getTime());
 
-    if (waitlist2Students.length > 0) {
-      const firstInWaitlist = waitlist2Students[0];
-      updated[firstInWaitlist.userId] = {
-        ...firstInWaitlist,
-        section: "batch2",
-      };
-      console.log(`[Auto-Promoted] ${firstInWaitlist.userName} from Waitlist 2 to Batch 2`);
-    }
+  while (batch2Count < maxLimitPerBatch && w2Index < waitlist2Students.length) {
+    const studentToPromote = waitlist2Students[w2Index];
+    const promotedUser = {
+      ...studentToPromote,
+      section: "batch2" as const,
+    };
+    updated[studentToPromote.userId] = promotedUser;
+    promotedUsers.push(promotedUser);
+    console.log(`[Auto-Promoted] ${studentToPromote.userName} from Waitlist 2 to Batch 2`);
+    batch2Count++;
+    w2Index++;
   }
 
-  return updated;
+  return { updatedMap: updated, promotedUsers };
 }

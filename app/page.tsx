@@ -211,6 +211,24 @@ export default function Home() {
       enrolledAt: new Date().toISOString(),
     };
 
+    // RACE CONDITION CHECK: Fetch latest live counts from Firestore right before writing
+    try {
+      const snap = await getDocs(collection(db, "enrollments"));
+      let currentBatchCount = 0;
+      snap.forEach(d => {
+        if (d.data().section === onboardingTargetSection) currentBatchCount++;
+      });
+      
+      // If seats filled up while they were typing in the modal
+      if (onboardingTargetSection.startsWith("batch") && currentBatchCount >= config.maxLimitPerBatch) {
+        alert(`Sorry! The seats for ${onboardingTargetSection.toUpperCase()} just filled up while you were filling the form. You are being redirected to the Waitlist.`);
+        onboardingTargetSection = onboardingTargetSection === "batch1" ? "waitlist1" : "waitlist2";
+        enrollmentData.section = onboardingTargetSection;
+      }
+    } catch (e) {
+      console.warn("Failed to check race condition limit:", e);
+    }
+
     // Update state & local storage immediately
     const updatedMap = { ...enrollments, [user.uid]: enrollmentData };
     setEnrollments(updatedMap);
@@ -332,7 +350,7 @@ export default function Home() {
     delete updated[user.uid];
 
     // Auto promote first waitlist student to available seat!
-    const promotedMap = autoPromoteWaitlist(updated, config.maxLimitPerBatch);
+    const { updatedMap: promotedMap, promotedUsers } = autoPromoteWaitlist(updated, config.maxLimitPerBatch);
 
     setEnrollments(promotedMap);
     setUserEnrollment(null);
@@ -348,24 +366,36 @@ export default function Home() {
       });
     } catch (e) { console.warn(e); }
 
-    // Delete from Firestore Real-Time Database
+    // Delete from Firestore Database
     try {
       await deleteDoc(doc(db, "enrollments", user.uid));
-    } catch (e) { console.warn(e); }
+      
+      // Update promoted waitlist users in Firestore!
+      for (const pUser of promotedUsers) {
+        await setDoc(doc(db, "enrollments", pUser.userId), pUser);
+      }
+    } catch (e) { console.warn("Firestore operation error:", e); }
 
-    // Sync any promoted waitlist student to Firestore
-    for (const item of Object.values(promotedMap)) {
-      try {
-        await setDoc(doc(db, "enrollments", item.userId), item);
-      } catch (e) { console.warn(e); }
-    }
+
   };
 
   // Save Admin Configuration
-  const handleSaveConfig = (newConfig: AppConfig) => {
+  const handleSaveConfig = async (newConfig: AppConfig) => {
     setConfig(newConfig);
     saveLocalConfig(newConfig);
-    recalculateCounts(enrollments);
+    
+    // Auto-promote waitlist students if capacity was increased
+    const { updatedMap, promotedUsers } = autoPromoteWaitlist(enrollments, newConfig.maxLimitPerBatch);
+    setEnrollments(updatedMap);
+    saveLocalEnrollmentMap(updatedMap);
+    recalculateCounts(updatedMap);
+
+    // Sync any newly promoted students to Firestore
+    for (const pUser of promotedUsers) {
+      try {
+        await setDoc(doc(db, "enrollments", pUser.userId), pUser);
+      } catch (e) { console.warn("Firestore promotion error:", e); }
+    }
   };
 
   // Post Announcement
