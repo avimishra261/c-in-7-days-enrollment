@@ -46,14 +46,17 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
   // Determine Waitlist Position & Section Lists
   const isWaitlist = userEnrollment.section.startsWith("waitlist");
 
-  // Confirmed Enrolled Students (Batch 1 & Batch 2)
+  // Determine user's base batch identifier ("1" or "2")
+  const baseBatch = userEnrollment.section.includes("1") ? "1" : "2";
+
+  // Confirmed Enrolled Students (For current user's batch only)
   const confirmedStudents = allEnrollments
-    .filter((e) => e.section === "batch1" || e.section === "batch2")
+    .filter((e) => e.section === `batch${baseBatch}`)
     .sort((a, b) => new Date(a.enrolledAt).getTime() - new Date(b.enrolledAt).getTime());
 
-  // Waitlisted Students (Waitlist 1 & Waitlist 2)
+  // Waitlisted Students (For current user's batch only)
   const waitlistedStudents = allEnrollments
-    .filter((e) => e.section === "waitlist1" || e.section === "waitlist2")
+    .filter((e) => e.section === `waitlist${baseBatch}`)
     .sort((a, b) => new Date(a.enrolledAt).getTime() - new Date(b.enrolledAt).getTime());
 
   // Current Section Filtered Students
