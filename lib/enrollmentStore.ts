@@ -53,7 +53,7 @@ export const COMMUNITY_WHATSAPP_LINK = "https://chat.whatsapp.com/LcftSfX9baA9tq
 export const DEFAULT_CONFIG: AppConfig = {
   startDate: "2026-08-10T09:00",
   endDate: "2026-08-17T23:59",
-  maxLimitPerBatch: 10, // Initial test limit requested in Idea.txt
+  maxLimitPerBatch: 4, // Initial test limit requested in Idea.txt
   registrationOpen: true,
   communityWhatsappLink: COMMUNITY_WHATSAPP_LINK,
   batch1WhatsappLink: BATCH_1_WHATSAPP_LINK,
