@@ -79,8 +79,10 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   };
 
   const goalLabels: Record<string, string> = {
-    placement: "Placements",
-    gate: "GATE / Higher Studies",
+    Yes: "Interested in GATE",
+    No: "Not interested in GATE",
+    placement: "Placements & Drives",
+    gate: "GATE & Higher Studies",
     dual: "Placement + GATE",
     core_c: "Core C Mastery",
   };
@@ -103,7 +105,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       return;
     }
 
-    const headers = ["Student Name", "Email", "WhatsApp Phone", "College Section", "Career Goal", "Allocated Batch", "Timestamp"];
+    const headers = ["Student Name", "Email", "WhatsApp Phone", "College Section", "Interested in GATE", "Allocated Batch", "Timestamp"];
     
     const rows = filteredList.map(item => [
       `"${item.userName || ""}"`,
@@ -444,7 +446,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                         <th style={{ padding: "0.6rem" }}>Student</th>
                         <th style={{ padding: "0.6rem" }}>WhatsApp Phone</th>
                         <th style={{ padding: "0.6rem" }}>Sec</th>
-                        <th style={{ padding: "0.6rem" }}>Goal</th>
+                        <th style={{ padding: "0.6rem" }}>GATE Interest</th>
                         <th style={{ padding: "0.6rem" }}>Allocated</th>
                         <th style={{ padding: "0.6rem" }}>Timestamp</th>
                       </tr>

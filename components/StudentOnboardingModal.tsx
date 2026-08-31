@@ -24,12 +24,7 @@ const DEFAULT_SECTIONS = [
   "DS", "ECS", "Other"
 ];
 
-const CAREER_GOALS = [
-  { id: "placement", title: "Product / Service Placements & Campus Drives", icon: "💼" },
-  { id: "gate", title: "GATE Exam & Higher Technical Studies (IITs/PSUs)", icon: "🎓" },
-  { id: "dual", title: "Placement + GATE (Dual Track Preparation)", icon: "⚡" },
-  { id: "core_c", title: "Core C Programming & System Level Mastery", icon: "💻" },
-];
+// Removed CAREER_GOALS list
 
 export const StudentOnboardingModal: React.FC<StudentOnboardingModalProps> = ({
   isOpen,
@@ -43,7 +38,7 @@ export const StudentOnboardingModal: React.FC<StudentOnboardingModalProps> = ({
   const [phone, setPhone] = useState("");
   const [selectedSection, setSelectedSection] = useState("CS1");
   const [customSection, setCustomSection] = useState("");
-  const [careerGoal, setCareerGoal] = useState("placement");
+  const [careerGoal, setCareerGoal] = useState("No");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -245,35 +240,36 @@ export const StudentOnboardingModal: React.FC<StudentOnboardingModalProps> = ({
             )}
           </div>
 
-          {/* Primary Learning Goal / Career Interest */}
+          {/* Interested in GATE Radio Option */}
           <div>
             <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block", marginBottom: "0.5rem" }}>
-              Primary Career Focus / Technical Goal *
+              Are you interested in GATE? *
             </label>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-              {CAREER_GOALS.map((goal) => {
-                const isSelected = careerGoal === goal.id;
+            <div style={{ display: "flex", gap: "1rem" }}>
+              {["No", "Yes"].map((option) => {
+                const isSelected = careerGoal === option;
                 return (
                   <div
-                    key={goal.id}
-                    onClick={() => setCareerGoal(goal.id)}
+                    key={option}
+                    onClick={() => setCareerGoal(option)}
                     style={{
-                      padding: "0.7rem 0.9rem",
+                      flex: 1,
+                      padding: "0.7rem",
                       borderRadius: "0.75rem",
                       border: isSelected ? "1px solid var(--primary)" : "1px solid rgba(255,255,255,0.08)",
                       background: isSelected ? "rgba(99, 102, 241, 0.18)" : "rgba(0,0,0,0.3)",
                       display: "flex",
                       alignItems: "center",
-                      gap: "0.75rem",
+                      justifyContent: "center",
+                      gap: "0.5rem",
                       cursor: "pointer",
                       transition: "all 0.2s ease"
                     }}
                   >
-                    <span style={{ fontSize: "1.2rem" }}>{goal.icon}</span>
-                    <span style={{ fontSize: "0.85rem", color: isSelected ? "#ffffff" : "var(--text-muted)", fontWeight: isSelected ? 600 : 400, flex: 1 }}>
-                      {goal.title}
+                    <span style={{ fontSize: "0.9rem", color: isSelected ? "#ffffff" : "var(--text-muted)", fontWeight: isSelected ? 600 : 400 }}>
+                      {option}
                     </span>
-                    {isSelected && <Check size={16} color="var(--accent)" />}
+                    {isSelected && <Check size={14} color="var(--accent)" />}
                   </div>
                 );
               })}

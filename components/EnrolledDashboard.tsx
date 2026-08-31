@@ -74,10 +74,12 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
   };
 
   const goalLabels: Record<string, string> = {
-    placement: "Product / Service Placements",
-    gate: "GATE Exam & Higher Technical Studies",
-    dual: "Placement + GATE Dual Track",
-    core_c: "Core C Programming Mastery",
+    Yes: "Interested in GATE",
+    No: "Not interested in GATE",
+    placement: "Placements & Drives",
+    gate: "GATE & Higher Studies",
+    dual: "Placement + GATE",
+    core_c: "Core C Mastery",
   };
 
   const handleCancelClick = async () => {
