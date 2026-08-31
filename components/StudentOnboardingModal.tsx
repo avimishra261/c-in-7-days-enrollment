@@ -21,7 +21,7 @@ interface StudentOnboardingModalProps {
 const DEFAULT_SECTIONS = [
   "CS1", "CS2", "CS3", "CS4", "CS5",
   "AIML1", "AIML2", "AIML3",
-  "DS", "ECS", "Other"
+  "IT", "DS", "ECS", "Other"
 ];
 
 // Removed CAREER_GOALS list
