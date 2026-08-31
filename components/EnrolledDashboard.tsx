@@ -111,6 +111,15 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
           overflow: "hidden"
         }}
       >
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "1rem" }}>
+          <button
+            onClick={() => setShowCancelConfirm(true)}
+            className="btn-secondary"
+            style={{ color: "#fda4af", borderColor: "rgba(244,63,94,0.3)", padding: "0.45rem 0.8rem", fontSize: "0.75rem" }}
+          >
+            <Trash2 size={14} style={{ marginRight: "0.3rem" }} /> Unenroll / Cancel Seat
+          </button>
+        </div>
         <div className="ticket-layout">
           
           <div>
@@ -188,14 +197,6 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
                   : `Position #${myWaitlistPosition} of ${mySectionStudents.length} Waiting`}
               </div>
             </div>
-
-            <button
-              onClick={() => setShowCancelConfirm(true)}
-              className="btn-secondary"
-              style={{ width: "100%", color: "#fda4af", borderColor: "rgba(244,63,94,0.3)", padding: "0.55rem 1rem", fontSize: "0.85rem" }}
-            >
-              <Trash2 size={15} /> Unenroll / Cancel Seat
-            </button>
           </div>
 
         </div>

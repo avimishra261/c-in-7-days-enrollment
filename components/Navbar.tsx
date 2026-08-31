@@ -75,9 +75,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 ) : (
                   <UserIcon size={16} color="var(--accent)" />
                 )}
-                <div style={{ display: "flex", flexDirection: "column", textAlign: "left", overflow: "hidden" }}>
-                  <span className="hide-on-mobile" style={{ fontSize: "0.65rem", color: "var(--text-dim)", textTransform: "uppercase", lineHeight: 1 }}>Logged In Account</span>
-                  <span className="email-text" style={{ fontSize: "0.85rem", fontWeight: 600, color: "#ffffff", display: "inline-block", maxWidth: "130px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <div className="hide-on-mobile" style={{ display: "flex", flexDirection: "column", textAlign: "left", overflow: "hidden" }}>
+                  <span style={{ fontSize: "0.65rem", color: "var(--text-dim)", textTransform: "uppercase", lineHeight: 1 }}>Logged In Account</span>
+                  <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#ffffff", display: "inline-block", maxWidth: "130px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {user.email || user.displayName}
                   </span>
                 </div>
