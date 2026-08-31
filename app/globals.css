@@ -369,6 +369,7 @@ h1, h2, h3, h4 {
 
   /* Digital Ticket Reordering for Mobile */
   .ticket-layout {
+    display: flex;
     flex-direction: column-reverse;
   }
   
