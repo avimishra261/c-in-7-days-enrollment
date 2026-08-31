@@ -60,7 +60,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenFacultyPortal }) => {
             © 2026 Indore Institute of Science and Technology. All rights reserved.
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-            Designed & Built with <Heart size={12} color="var(--rose)" /> for IIST Students
+            Designed & Built with <Heart size={12} color="var(--rose)" /> for IIST Students | UI v1.2.0
           </div>
         </div>
 
