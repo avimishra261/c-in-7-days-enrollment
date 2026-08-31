@@ -9,12 +9,14 @@ import {
   User,
 } from "firebase/auth";
 import {
-  doc,
-  setDoc,
-  deleteDoc,
   collection,
-  onSnapshot,
+  addDoc,
   getDocs,
+  setDoc,
+  doc,
+  onSnapshot,
+  deleteDoc,
+  updateDoc,
 } from "firebase/firestore";
 import {
   AppConfig,
@@ -74,13 +76,31 @@ export default function Home() {
   // Initialize Config & Session
   useEffect(() => {
     setMounted(true);
+    // Initial fallback load
     const loadedConfig = getLocalConfig();
     setConfig(loadedConfig);
+
+    // Dynamic Real-time Config Sync from Firestore
+    const unsubConfig = onSnapshot(
+      doc(db, "settings", "global"),
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const remoteConfig = docSnap.data() as AppConfig;
+          setConfig(remoteConfig);
+          saveLocalConfig(remoteConfig); // Optional backup cache
+        }
+      },
+      (err) => {
+        console.warn("Firestore config snapshot error:", err);
+      }
+    );
 
     const persistentUser = getPersistentSessionUser();
     if (persistentUser) {
       setUser(persistentUser);
     }
+
+    return () => unsubConfig();
   }, []);
 
   // Firestore onSnapshot listener exclusively handles all real-time cross-device syncing now!
@@ -367,8 +387,11 @@ export default function Home() {
 
   // Save Admin Configuration
   const handleSaveConfig = async (newConfig: AppConfig) => {
-    setConfig(newConfig);
-    saveLocalConfig(newConfig);
+    try {
+      await setDoc(doc(db, "settings", "global"), newConfig);
+    } catch (e) {
+      console.warn("Failed to save config to Firestore:", e);
+    }
     
     // Auto-promote waitlist students if capacity was increased
     const { updatedMap, promotedUsers } = autoPromoteWaitlist(enrollments, newConfig.maxLimitPerBatch);
