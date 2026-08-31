@@ -233,7 +233,36 @@ h1, h2, h3, h4 {
 .progress-amber { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
 .progress-rose { background: linear-gradient(90deg, #f43f5e, #fb7185); }
 
-/* Grid Layouts */
+/* Grid Layouts & Wrappers */
+.ticket-layout {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+.ticket-actions {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 280px;
+}
+
+/* Touch-friendly Table Wrapper */
+.table-scroll-wrapper {
+  max-height: 320px;
+  overflow-y: auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(0,0,0,0.3);
+}
+
 .grid-2 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -334,6 +363,16 @@ h1, h2, h3, h4 {
 
   .hide-on-mobile {
     display: none !important;
+  }
+
+  /* Digital Ticket Reordering for Mobile */
+  .ticket-layout {
+    flex-direction: column-reverse;
+  }
+  
+  .ticket-actions {
+    max-width: 100%;
+    align-items: center;
   }
 
   .nav-user-badge span.email-text {

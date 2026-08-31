@@ -111,7 +111,7 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
           overflow: "hidden"
         }}
       >
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "1.25rem" }}>
+        <div className="ticket-layout">
           
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.6rem", flexWrap: "wrap" }}>
@@ -133,17 +133,17 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
             </h2>
 
             <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-              <UserCheck size={18} color="var(--accent)" /> Student: <strong style={{ color: "#ffffff" }}>{userEnrollment.userName}</strong> ({userEnrollment.userEmail})
+              <UserCheck size={18} color="var(--accent)" /> <span className="hide-on-mobile">Student:</span> <strong style={{ color: "#ffffff" }}>{userEnrollment.userName}</strong>
             </p>
 
             {userEnrollment.phone && (
-              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginTop: "0.3rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+              <p className="hide-on-mobile" style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginTop: "0.3rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
                 <Phone size={15} color="#25D366" /> WhatsApp: <strong style={{ color: "#ffffff" }}>{userEnrollment.phone}</strong>
               </p>
             )}
 
             {userEnrollment.careerGoal && (
-              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginTop: "0.3rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+              <p className="hide-on-mobile" style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginTop: "0.3rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
                 <BookOpen size={15} color="var(--accent)" /> Career Goal: <strong style={{ color: "var(--accent)" }}>{goalLabels[userEnrollment.careerGoal] || userEnrollment.careerGoal}</strong>
               </p>
             )}
@@ -153,7 +153,7 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
             </p>
           </div>
 
-          <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.75rem", width: "100%", maxWidth: "280px" }}>
+          <div className="ticket-actions">
             
             {/* Join WhatsApp Group Button */}
             <a
@@ -354,7 +354,7 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
           </div>
 
           {/* Touch-friendly Horizontal Scrolling Table Container */}
-          <div style={{ maxHeight: "320px", overflowY: "auto", overflowX: "auto", borderRadius: "0.75rem", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.3)" }}>
+          <div className="table-scroll-wrapper">
             {rosterTab === "batch" ? (
               <table style={{ width: "100%", minWidth: "480px", borderCollapse: "collapse", fontSize: "0.825rem", textAlign: "left" }}>
                 <thead>

@@ -267,6 +267,7 @@ export default function Home() {
 
     // CLOSE ONBOARDING MODAL & OPEN WHATSAPP CELEBRATION MODAL!
     setIsOnboardingOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
     setWhatsAppRedirectSection(enrollmentData.section);
     setIsWhatsAppModalOpen(true);
   };
