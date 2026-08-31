@@ -83,35 +83,7 @@ export default function Home() {
     }
   }, []);
 
-  // Fetch from Server API Route /api/enrollments every 3 seconds for 100% Guaranteed Cross-Device Sync
-  useEffect(() => {
-    const fetchApiEnrollments = async () => {
-      try {
-        const res = await fetch("/api/enrollments");
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && data.enrollments) {
-            setEnrollments((prev) => {
-              const merged = { ...prev, ...data.enrollments };
-              saveLocalEnrollmentMap(merged);
-              recalculateCounts(merged);
-              if (user?.uid && merged[user.uid]) {
-                setUserEnrollment(merged[user.uid]);
-              }
-              return merged;
-            });
-          }
-        }
-      } catch (e) {
-        console.warn("API enrollments fetch error:", e);
-      }
-    };
-
-    fetchApiEnrollments();
-    const interval = setInterval(fetchApiEnrollments, 3000);
-    return () => clearInterval(interval);
-  }, [user?.uid]);
-
+  // Firestore onSnapshot listener exclusively handles all real-time cross-device syncing now!
   // Sync Real-time Firestore Enrollments across ALL phones & devices
   useEffect(() => {
     let unsub = () => {};
@@ -271,14 +243,7 @@ export default function Home() {
     saveLocalEnrollmentMap(updatedMap);
     recalculateCounts(updatedMap);
 
-    // Save to Server API Route (Syncs all devices!)
-    try {
-      await fetch("/api/enrollments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enrollmentData }),
-      });
-    } catch (e) { console.warn("API write error:", e); }
+
 
     // CLOSE ONBOARDING MODAL & OPEN WHATSAPP CELEBRATION MODAL!
     setIsOnboardingOpen(false);
@@ -385,14 +350,7 @@ export default function Home() {
     saveLocalEnrollmentMap(promotedMap);
     recalculateCounts(promotedMap);
 
-    // Delete from API Route
-    try {
-      await fetch("/api/enrollments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "delete", userId: user.uid }),
-      });
-    } catch (e) { console.warn(e); }
+
 
     // Delete from Firestore Database
     try {
@@ -455,13 +413,7 @@ export default function Home() {
     setWaitlist2Count(0);
     saveLocalEnrollmentMap({});
 
-    try {
-      await fetch("/api/enrollments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "clear" }),
-      });
-    } catch (e) { console.warn(e); }
+
 
     try {
       const snap = await getDocs(collection(db, "enrollments"));
