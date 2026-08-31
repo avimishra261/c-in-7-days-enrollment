@@ -26,19 +26,19 @@ export const Hero: React.FC<HeroProps> = ({ startDate, endDate }) => {
       <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.4rem 1rem", borderRadius: "999px", background: "rgba(56, 189, 248, 0.1)", border: "1px solid rgba(56, 189, 248, 0.25)", marginBottom: "1.5rem" }}>
         <Sparkles size={16} color="#38bdf8" />
         <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#38bdf8" }}>
-          Free 7-Day C Masterclass • Restricted to @indoreinstitute.com
+          Free 12-Day C & DSA Bootcamp (7 Days C + 5 Days DSA) • Restricted to @indoreinstitute.com
         </span>
       </div>
 
       {/* Main Headline */}
       <h1 style={{ fontSize: "clamp(2.2rem, 5vw, 3.8rem)", fontWeight: 800, lineHeight: 1.15, marginBottom: "1.25rem" }}>
         Level Up Your Coding Logic with <br />
-        <span className="gradient-text">"C in 7 Days"</span>
+        <span className="gradient-text">"C & DSA in 12 Days"</span>
       </h1>
 
       {/* Subtitle */}
       <p style={{ fontSize: "clamp(1rem, 2vw, 1.2rem)", color: "var(--text-muted)", maxWidth: "750px", margin: "0 auto 2rem auto" }}>
-        Join <strong style={{ color: "#ffffff" }}>Mr. Ashish Singh</strong> at IIST for an exclusive 7-day deep dive into the core engine of computer science. Master pointers, memory architecture, and complex problem-solving.
+        Join <strong style={{ color: "#ffffff" }}>Mr. Ashish Singh</strong> at IIST for an exclusive 12-day deep dive (7 Days C + 5 Days Data Structures) into the core engine of computer science. Master pointers, memory architecture, and complex problem-solving.
       </p>
 
       {/* Event Meta Badges */}

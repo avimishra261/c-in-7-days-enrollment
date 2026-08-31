@@ -193,7 +193,7 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
 
             <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "0.6rem", fontSize: "0.9rem", color: "var(--text-muted)", marginBottom: "1.5rem" }}>
               <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <Clock size={16} color="var(--accent)" /> Timing: To be announced by Prof. Ashish Singh
+                <Clock size={16} color="var(--accent)" /> Timing: 8:00 AM to 1:00 PM
               </li>
               <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                 <Users size={16} color="var(--primary)" /> Seat Allocation: First-Come First-Serve
@@ -273,7 +273,7 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
 
             <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "0.6rem", fontSize: "0.9rem", color: "var(--text-muted)", marginBottom: "1.5rem" }}>
               <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <Clock size={16} color="var(--accent)" /> Timing: To be announced by Prof. Ashish Singh
+                <Clock size={16} color="var(--accent)" /> Timing: 1:30 PM to 6:30 PM
               </li>
               <li style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                 <Users size={16} color="var(--primary)" /> Seat Allocation: First-Come First-Serve
