@@ -212,7 +212,7 @@ export default function Home() {
 
       // Check Waitlist Limits (Notice we check this regardless, because if they were downgraded above, they need waitlist check too!)
       if (enrollmentData.section.startsWith("waitlist")) {
-        const wlMax = config.maxLimitPerBatch === 2 ? 2 : 80;
+        const wlMax = config.maxLimitPerBatch === 10 ? 5 : 80;
         
         // Refetch to be 100% safe if we just downgraded, but using memory sort is usually enough unless extreme collision
         const snap2 = await getDocs(collection(db, "enrollments"));

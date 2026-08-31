@@ -252,7 +252,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
             <div>
               <label style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "block", marginBottom: "0.4rem" }}>
-                Max Capacity Per Batch (Testing: 2 | Production: 160)
+                Max Capacity Per Batch (Testing: 10 | Production: 160)
               </label>
               <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
                 <input
@@ -274,11 +274,11 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 />
                 <button
                   type="button"
-                  onClick={() => setMaxLimitPerBatch(2)}
+                  onClick={() => setMaxLimitPerBatch(10)}
                   className="btn-secondary"
                   style={{ padding: "0.5rem 0.8rem", fontSize: "0.8rem" }}
                 >
-                  Set Test (2)
+                  Set Test (10)
                 </button>
                 <button
                   type="button"
