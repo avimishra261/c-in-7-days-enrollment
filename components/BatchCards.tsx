@@ -35,7 +35,7 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
   const [loadingSection, setLoadingSection] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ type: "success" | "error" | "info"; message: string } | null>(null);
 
-  const wlMax = maxLimitPerBatch === 10 ? 5 : 80;
+  const wlMax = maxLimitPerBatch === 10 ? 5 : 60;
 
   // Batch 1 Railway Logic
   const batch1Percent = Math.min(100, Math.round((batch1Count / maxLimitPerBatch) * 100));
