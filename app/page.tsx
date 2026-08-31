@@ -211,19 +211,54 @@ export default function Home() {
       enrolledAt: new Date().toISOString(),
     };
 
-    // RACE CONDITION CHECK: Fetch latest live counts from Firestore right before writing
+    // OPTIMISTIC CONCURRENCY CONTROL
+    // 1. Write the document blindly first to secure our exact timestamp position.
+    try {
+      await setDoc(doc(db, "enrollments", user.uid), enrollmentData);
+    } catch (e) {
+      console.warn("Firestore initial setDoc error:", e);
+    }
+
+    // 2. Fetch all documents to see where we landed in the queue.
     try {
       const snap = await getDocs(collection(db, "enrollments"));
-      let currentBatchCount = 0;
-      snap.forEach(d => {
-        if (d.data().section === onboardingTargetSection) currentBatchCount++;
-      });
-      
-      // If seats filled up while they were typing in the modal
-      if (onboardingTargetSection.startsWith("batch") && currentBatchCount >= config.maxLimitPerBatch) {
-        alert(`Sorry! The seats for ${onboardingTargetSection.toUpperCase()} just filled up while you were filling the form. You are being redirected to the Waitlist.`);
-        const fallbackSection = onboardingTargetSection === "batch1" ? "waitlist1" : "waitlist2";
-        enrollmentData.section = fallbackSection;
+      const allDocs = snap.docs.map(d => d.data() as UserEnrollment);
+
+      // Check Batch Limits
+      if (enrollmentData.section.startsWith("batch")) {
+        const batchStudents = allDocs
+          .filter(d => d.section === enrollmentData.section)
+          .sort((a, b) => new Date(a.enrolledAt).getTime() - new Date(b.enrolledAt).getTime());
+        
+        const myIndex = batchStudents.findIndex(d => d.userId === user.uid);
+        if (myIndex >= config.maxLimitPerBatch) {
+          alert(`Sorry! The seats for ${enrollmentData.section.toUpperCase()} just filled up. You have been moved to the Waitlist.`);
+          enrollmentData.section = enrollmentData.section === "batch1" ? "waitlist1" : "waitlist2";
+          await setDoc(doc(db, "enrollments", user.uid), enrollmentData);
+        }
+      }
+
+      // Check Waitlist Limits (Notice we check this regardless, because if they were downgraded above, they need waitlist check too!)
+      if (enrollmentData.section.startsWith("waitlist")) {
+        const wlMax = config.maxLimitPerBatch === 4 ? 4 : 80;
+        
+        // Refetch to be 100% safe if we just downgraded, but using memory sort is usually enough unless extreme collision
+        const snap2 = await getDocs(collection(db, "enrollments"));
+        const allDocs2 = snap2.docs.map(d => d.data() as UserEnrollment);
+        
+        const wlStudents = allDocs2
+          .filter(d => d.section === enrollmentData.section)
+          .sort((a, b) => new Date(a.enrolledAt).getTime() - new Date(b.enrolledAt).getTime());
+        
+        const myIndex = wlStudents.findIndex(d => d.userId === user.uid);
+        
+        if (myIndex >= wlMax) {
+          alert(`Sorry! The Waitlist also just filled up. Registration failed (REGRET).`);
+          await deleteDoc(doc(db, "enrollments", user.uid));
+          
+          setIsOnboardingOpen(false);
+          return; // Stop completely! Don't update local state or show whatsapp.
+        }
       }
     } catch (e) {
       console.warn("Failed to check race condition limit:", e);
@@ -245,16 +280,9 @@ export default function Home() {
       });
     } catch (e) { console.warn("API write error:", e); }
 
-    // Save to Firestore Database
-    try {
-      await setDoc(doc(db, "enrollments", user.uid), enrollmentData);
-    } catch (e) {
-      console.warn("Firestore setDoc error fallback to local storage:", e);
-    }
-
     // CLOSE ONBOARDING MODAL & OPEN WHATSAPP CELEBRATION MODAL!
     setIsOnboardingOpen(false);
-    setWhatsAppRedirectSection(onboardingTargetSection);
+    setWhatsAppRedirectSection(enrollmentData.section);
     setIsWhatsAppModalOpen(true);
   };
 
