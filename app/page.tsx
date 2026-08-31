@@ -222,8 +222,8 @@ export default function Home() {
       // If seats filled up while they were typing in the modal
       if (onboardingTargetSection.startsWith("batch") && currentBatchCount >= config.maxLimitPerBatch) {
         alert(`Sorry! The seats for ${onboardingTargetSection.toUpperCase()} just filled up while you were filling the form. You are being redirected to the Waitlist.`);
-        onboardingTargetSection = onboardingTargetSection === "batch1" ? "waitlist1" : "waitlist2";
-        enrollmentData.section = onboardingTargetSection;
+        const fallbackSection = onboardingTargetSection === "batch1" ? "waitlist1" : "waitlist2";
+        enrollmentData.section = fallbackSection;
       }
     } catch (e) {
       console.warn("Failed to check race condition limit:", e);
