@@ -147,9 +147,9 @@ export const BatchCards: React.FC<BatchCardsProps> = ({
               <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(56,189,248,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <UserCheck size={20} color="var(--accent)" />
               </div>
-              <div>
+              <div style={{ minWidth: 0 }}>
                 <span style={{ fontSize: "0.75rem", color: "var(--text-dim)", textTransform: "uppercase", fontWeight: 600 }}>Active Student Session</span>
-                <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "#ffffff" }}>
+                <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "#ffffff", wordBreak: "break-all" }}>
                   {user.email || user.displayName}
                 </div>
               </div>

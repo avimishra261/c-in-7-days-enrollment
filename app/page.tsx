@@ -466,7 +466,7 @@ export default function Home() {
   if (!mounted) return null;
 
   return (
-    <main style={{ minHeight: "100vh", position: "relative" }}>
+    <main style={{ minHeight: "100vh", position: "relative", minWidth: 0, width: "100%" }}>
       {/* Background Ambient Glow */}
       <div className="ambient-bg">
         <div className="glow-orb-1" />

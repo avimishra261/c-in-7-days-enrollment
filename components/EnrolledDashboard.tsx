@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { UserEnrollment, Announcement } from "../lib/enrollmentStore";
 import {
   CheckCircle,
@@ -41,6 +42,12 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
 }) => {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [rosterTab, setRosterTab] = useState<"batch" | "waitlist">("batch");
 
   // Determine Waitlist Position & Section Lists
@@ -224,13 +231,13 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
       </div>
 
       {/* ================= CANCEL SEAT CONFIRMATION MODAL ================= */}
-      {showCancelConfirm && (
+      {showCancelConfirm && mounted && createPortal(
         <div style={{
           position: "fixed",
           top: 0, left: 0, right: 0, bottom: 0,
           background: "rgba(0,0,0,0.85)",
           backdropFilter: "blur(8px)",
-          zIndex: 200,
+          zIndex: 99999,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -263,7 +270,8 @@ export const EnrolledDashboard: React.FC<EnrolledDashboardProps> = ({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ================= TWO COLUMN LAYOUT: ANNOUNCEMENTS & TRANSPARENT ROSTER ================= */}
