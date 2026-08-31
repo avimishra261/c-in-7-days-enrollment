@@ -331,4 +331,15 @@ h1, h2, h3, h4 {
   table {
     min-width: 450px;
   }
+
+  .hide-on-mobile {
+    display: none !important;
+  }
+
+  .nav-user-badge span.email-text {
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }

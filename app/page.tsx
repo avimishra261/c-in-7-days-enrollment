@@ -124,14 +124,12 @@ export default function Home() {
             liveData[docSnap.id] = docSnap.data() as UserEnrollment;
           });
 
-          if (Object.keys(liveData).length > 0) {
-            setEnrollments(liveData);
-            saveLocalEnrollmentMap(liveData);
-            recalculateCounts(liveData);
+          setEnrollments(liveData);
+          saveLocalEnrollmentMap(liveData);
+          recalculateCounts(liveData);
 
-            if (user?.uid && liveData[user.uid]) {
-              setUserEnrollment(liveData[user.uid]);
-            }
+          if (user?.uid) {
+            setUserEnrollment(liveData[user.uid] || null);
           }
         },
         (err) => {

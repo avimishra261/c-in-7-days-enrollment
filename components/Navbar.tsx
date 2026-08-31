@@ -17,7 +17,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   return (
     <header style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", background: "rgba(8, 12, 20, 0.85)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 50 }}>
-      <div className="container" style={{ padding: "0.85rem 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div className="container" style={{ padding: "0.85rem 1.5rem", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
         
         {/* Logo & Branding */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
@@ -42,7 +42,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 IIST Exclusive
               </span>
             </div>
-            <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: 0 }}>
+            <p className="hide-on-mobile" style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: 0 }}>
               Mastery Bootcamp by Mr. Ashish Singh
             </p>
           </div>
@@ -61,7 +61,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Auth User Info Badge & Sign Out Button */}
           {user && (
             <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-              <div style={{
+              <div className="nav-user-badge" style={{
                 display: "flex",
                 alignItems: "center",
                 gap: "0.5rem",
@@ -76,8 +76,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <UserIcon size={16} color="var(--accent)" />
                 )}
                 <div style={{ display: "flex", flexDirection: "column", textAlign: "left" }}>
-                  <span style={{ fontSize: "0.65rem", color: "var(--text-dim)", textTransform: "uppercase", lineHeight: 1 }}>Logged In Account</span>
-                  <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#ffffff" }}>
+                  <span className="hide-on-mobile" style={{ fontSize: "0.65rem", color: "var(--text-dim)", textTransform: "uppercase", lineHeight: 1 }}>Logged In Account</span>
+                  <span className="email-text" style={{ fontSize: "0.85rem", fontWeight: 600, color: "#ffffff", display: "inline-block" }}>
                     {user.email || user.displayName}
                   </span>
                 </div>
@@ -86,10 +86,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 onClick={onLogout}
                 className="btn-secondary"
-                style={{ padding: "0.45rem 0.75rem", fontSize: "0.8rem", color: "#fda4af", borderColor: "rgba(244,63,94,0.3)" }}
+                style={{ padding: "0.45rem 0.75rem", fontSize: "0.8rem", color: "#fda4af", borderColor: "rgba(244,63,94,0.3)", width: "auto" }}
                 title="Sign Out"
               >
-                <LogOut size={14} /> Sign Out
+                <LogOut size={14} /> <span className="hide-on-mobile">Sign Out</span>
               </button>
             </div>
           )}
