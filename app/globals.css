@@ -119,6 +119,7 @@ h1, h2, h3, h4 {
   padding: 1.75rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  min-width: 0;
 }
 
 .glass-card:hover {
