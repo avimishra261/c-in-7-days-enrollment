@@ -80,6 +80,7 @@ export default function Home() {
     setTimeout(() => setMounted(true), 0);
     // Initial fallback load
     const loadedConfig = getLocalConfig();
+    loadedConfig.maxLimitPerBatch = 160;
     setConfig(loadedConfig);
 
     // Dynamic Real-time Config Sync from Firestore
@@ -88,6 +89,7 @@ export default function Home() {
       (docSnap) => {
         if (docSnap.exists()) {
           const remoteConfig = docSnap.data() as AppConfig;
+          remoteConfig.maxLimitPerBatch = 160; // FORCED FOR LIVE PRODUCTION
           setConfig(remoteConfig);
           saveLocalConfig(remoteConfig); // Optional backup cache
         }
