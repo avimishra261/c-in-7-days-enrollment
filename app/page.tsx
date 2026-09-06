@@ -80,7 +80,7 @@ export default function Home() {
     setTimeout(() => setMounted(true), 0);
     // Initial fallback load
     const loadedConfig = getLocalConfig();
-    loadedConfig.maxLimitPerBatch = 160;
+    loadedConfig.maxLimitPerBatch = 170;
     setConfig(loadedConfig);
 
     // Dynamic Real-time Config Sync from Firestore
@@ -89,7 +89,7 @@ export default function Home() {
       (docSnap) => {
         if (docSnap.exists()) {
           const remoteConfig = docSnap.data() as AppConfig;
-          remoteConfig.maxLimitPerBatch = 160; // FORCED FOR LIVE PRODUCTION
+          remoteConfig.maxLimitPerBatch = 170; // FORCED FOR LIVE PRODUCTION
           setConfig(remoteConfig);
           saveLocalConfig(remoteConfig); // Optional backup cache
         }
@@ -236,7 +236,7 @@ export default function Home() {
 
       // Check Waitlist Limits (Notice we check this regardless, because if they were downgraded above, they need waitlist check too!)
       if (enrollmentData.section.startsWith("waitlist")) {
-        const wlMax = config.maxLimitPerBatch === 10 ? 5 : 60;
+        const wlMax = config.maxLimitPerBatch === 10 ? 5 : 50;
         
         // Refetch to be 100% safe if we just downgraded, but using memory sort is usually enough unless extreme collision
         const snap2 = await getDocs(collection(db, "enrollments"));
