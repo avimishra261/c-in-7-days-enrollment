@@ -313,10 +313,15 @@ export default function Home() {
       }
     } catch (err: unknown) {
       console.warn("Google login popup error:", err);
-      if ((err as { code?: string }).code === "auth/unauthorized-domain") {
+      const errorCode = (err as { code?: string }).code;
+      if (errorCode === "auth/unauthorized-domain") {
         setRejectedEmail("c-in-7-days-enrollment.vercel.app (Unauthorized Domain in Firebase)");
         setIsAccessDeniedOpen(true);
       }
+      if (errorCode === "auth/popup-closed-by-user") {
+        throw new Error("Login cancelled. Please try again.");
+      }
+      throw new Error("Popup blocked by browser. Please open this link directly in Google Chrome or Safari.");
     }
   };
 
