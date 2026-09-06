@@ -267,11 +267,11 @@ export default function Home() {
     saveLocalEnrollmentMap(updatedMap);
     recalculateCounts(updatedMap);
 
-
-
-    // CLOSE ONBOARDING MODAL & OPEN WHATSAPP CELEBRATION MODAL!
+    // Close the onboarding modal (Fixes bug where students think it failed)
     setIsOnboardingOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
+    
+    // Trigger celebration / redirect modal
     setWhatsAppRedirectSection(enrollmentData.section);
     setIsWhatsAppModalOpen(true);
   };
